@@ -15,14 +15,16 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// =================== AUTH =================== //
 export const authAPI = {
   register: (userData: any) => api.post('/users/register', userData),
-  verify: (email: string, verificationCode: string) => 
+  verify: (email: string, verificationCode: string) =>
     api.post('/users/verify', { email, verificationCode }),
-  login: (email: string, password: string) => 
+  login: (email: string, password: string) =>
     api.post('/users/login', { email, password }),
 }
 
+// =================== USERS =================== //
 export const usersAPI = {
   getAll: () => api.get('/users'),
   getById: (id: number) => api.get(`/users/${id}`),
@@ -30,6 +32,7 @@ export const usersAPI = {
   delete: (id: number) => api.delete(`/users/${id}`),
 }
 
+// =================== EVENTS =================== //
 export const eventsAPI = {
   getAll: () => api.get('/events'),
   getById: (id: number) => api.get(`/events/${id}`),
@@ -38,10 +41,38 @@ export const eventsAPI = {
   delete: (id: number) => api.delete(`/events/${id}`),
 }
 
+// =================== BOOKINGS =================== //
 export const bookingAPI = {
   getAll: () => api.get('/bookings'),
   getById: (id: number) => api.get(`/bookings/${id}`),
   create: (data: any) => api.post('/bookings', data),
   update: (id: number, data: any) => api.put(`/bookings/${id}`, data),
   delete: (id: number) => api.delete(`/bookings/${id}`),
+}
+
+// =================== VENUES =================== //
+export const venuesAPI = {
+  getAll: () => api.get('/venues'),
+  getById: (id: number) => api.get(`/venues/${id}`),
+  create: (data: any) => api.post('/venues', data),
+  update: (id: number, data: any) => api.put(`/venues/${id}`, data),
+  delete: (id: number) => api.delete(`/venues/${id}`),
+}
+
+// =================== PAYMENTS =================== //
+export const paymentsAPI = {
+  getAll: () => api.get('/payments'),
+  getById: (id: number) => api.get(`/payments/${id}`),
+  create: (data: any) => api.post('/payments', data),
+  update: (id: number, data: any) => api.put(`/payments/${id}`, data),
+  delete: (id: number) => api.delete(`/payments/${id}`),
+}
+
+// =================== SUPPORT TICKETS =================== //
+export const supportTicketsAPI = {
+  getAll: () => api.get('/support-tickets'),
+  getById: (id: number) => api.get(`/support-tickets/${id}`),
+  create: (data: any) => api.post('/support-tickets', data),
+  update: (id: number, data: any) => api.put(`/support-tickets/${id}`, data),
+  delete: (id: number) => api.delete(`/support-tickets/${id}`),
 }
