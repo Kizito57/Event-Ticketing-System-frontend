@@ -45,7 +45,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const redirectPath = user.role === 'admin' ? '/admin-dashboard' : '/customer-dashboard'
+      const redirectPath = user.role === 'admin' ? '/admin-dashboard' : '/user-dashboard'
       navigate(redirectPath)
     }
   }, [isAuthenticated, user, navigate])

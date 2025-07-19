@@ -5,11 +5,14 @@ import { type AppDispatch, type RootState } from '../../store/store'
 import UserManagement from './admin/UserManagement'
 import EventManagement from './admin/EventManagement'
 import BookingManagement from './admin/BookingManagement'
+// import VenueManagement from './admin/VenueManagement'
+// import PaymentManagement from './admin/PaymentManagement'
+// import SupportTicketManagement from './admin/SupportTicketManagement'
 import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
    Users, Car, CalendarDays, User, LogOut, Settings, 
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight,Building2, CreditCard, HelpCircle
 } from 'lucide-react'
 
 const AdminDashboard = () => {
@@ -25,12 +28,18 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'customers':
+      case 'users':
         return <UserManagement />
-      case 'cars':
+      case 'events':
         return <EventManagement />
       case 'bookings':
         return <BookingManagement />
+    //     case 'venues':
+    //   return <VenueManagement />
+    // case 'payments':
+    //   return <PaymentManagement />
+    // case 'support':
+    //   return <SupportTicketManagement />
       case 'profile':
         return <Profile />
       default:
@@ -45,6 +54,9 @@ const AdminDashboard = () => {
     { id: 'events', label: 'Events', icon: Car, color: 'text-green-500' },
     { id: 'bookings', label: 'Bookings', icon: CalendarDays, color: 'text-purple-500' },
     { id: 'profile', label: 'Profile', icon: User, color: 'text-orange-500' },
+    { id: 'venues', label: 'Venues', icon: Building2, color: 'text-cyan-500' },
+    { id: 'payments', label: 'Payments', icon: CreditCard, color: 'text-yellow-500' },
+    { id: 'support', label: 'Support', icon: HelpCircle, color: 'text-red-500' },
   ]
 
   return (

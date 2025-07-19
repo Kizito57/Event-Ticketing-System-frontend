@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit'
 import { authAPI } from '../../services/api'
 
-// Types aligned with your UsersTable schema
+// Types
 interface User {
   user_id: number
   first_name: string
   last_name: string
   email: string
-  role: 'user' | 'admin'
+  role: 'admin' | 'user'
   is_verified: boolean
 }
 
@@ -34,7 +34,7 @@ interface LoginPayload {
 
 interface VerificationPayload {
   email: string
-  verification_code: string
+  verificationCode: string
 }
 
 // Load from localStorage
@@ -51,14 +51,10 @@ const initialState: AuthState = {
   registrationEmail: null,
 }
 
-// Thunks with proper typing for returned payload and rejectValue
-export const registerUser = createAsyncThunk<
-  { user: User },       // returned on success
-  RegisterPayload,      // argument to thunk
-  { rejectValue: string }
->(
+// Thunks
+export const registerUser = createAsyncThunk(
   'auth/register',
-  async (userData, { rejectWithValue }) => {
+  async (userData: RegisterPayload, { rejectWithValue }) => {
     try {
       const response = await authAPI.register(userData)
       return response.data
@@ -68,15 +64,11 @@ export const registerUser = createAsyncThunk<
   }
 )
 
-export const verifyEmail = createAsyncThunk<
-  {}, // no payload needed on success, adjust if your API returns data
-  VerificationPayload,
-  { rejectValue: string }
->(
+export const verifyEmail = createAsyncThunk(
   'auth/verify',
-  async ({ email, verification_code }, { rejectWithValue }) => {
+  async ({ email, verificationCode }: VerificationPayload, { rejectWithValue }) => {
     try {
-      const response = await authAPI.verify(email, verification_code)
+      const response = await authAPI.verify(email, verificationCode)
       return response.data
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.error || 'Verification failed')
@@ -84,16 +76,12 @@ export const verifyEmail = createAsyncThunk<
   }
 )
 
-export const loginUser = createAsyncThunk<
-  { token: string; user: User | null },  // success payload type
-  LoginPayload,                         // thunk argument type
-  { rejectValue: string }
->(
+export const loginUser = createAsyncThunk(
   'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password }: LoginPayload, { rejectWithValue }) => {
     try {
       const response = await authAPI.login(email, password)
-      const user = response.data.user || null
+      const user = response.data.user || response.data.admin || null
       return {
         token: response.data.token,
         user,
@@ -132,11 +120,11 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false
-        state.registrationEmail = action.payload.user?.email || null
+        state.registrationEmail = action.payload.user?.email || action.payload.admin?.email || null
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false
-        state.error = action.payload ?? 'Registration failed'
+        state.error = action.payload as string
       })
 
       // Verify
@@ -150,7 +138,7 @@ const authSlice = createSlice({
       })
       .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false
-        state.error = action.payload ?? 'Verification failed'
+        state.error = action.payload as string
       })
 
       // Login
@@ -171,7 +159,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false
-        state.error = action.payload ?? 'Login failed'
+        state.error = action.payload as string
       })
   },
 })

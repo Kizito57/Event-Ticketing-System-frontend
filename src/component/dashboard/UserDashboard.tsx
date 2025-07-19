@@ -4,12 +4,14 @@ import { logout } from '../../store/slices/authSlice'
 import { type AppDispatch, type RootState } from '../../store/store'
 import EventBrowsing from './customer/EventBrowsing'
 import MyBookings from './customer/MyBookings'
+import MyPayments from './customer/MyPayments'
+import SupportCenter from './customer/SupportCenter'
 import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
   CalendarCheck2, User, LogOut, 
   ChevronLeft, ChevronRight, Sparkles,
-  Ticket
+  Ticket, CreditCard, HelpCircle 
 } from 'lucide-react'
 
 const UserDashboard = () => {
@@ -29,6 +31,11 @@ const UserDashboard = () => {
         return <EventBrowsing />
       case 'bookings':
         return <MyBookings />
+            case 'payments':
+      return <MyPayments />
+    case 'support':
+      return <SupportCenter />
+
       case 'profile':
         return <Profile />
       default:
@@ -53,6 +60,21 @@ const UserDashboard = () => {
       color: 'text-blue-500',
       description: 'View your bookings'
     },
+        {
+      id: 'payments',
+      label: 'Payments',
+      icon: CreditCard,
+      color: 'text-yellow-500',
+      description: 'View payment history'
+    },
+    {
+      id: 'support',
+      label: 'Support',
+      icon: HelpCircle,
+      color: 'text-red-500',
+      description: 'Need help? Contact us'
+    },
+
     { 
       id: 'profile', 
       label: 'Profile', 

@@ -36,7 +36,7 @@ export const fetchEvents = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await eventsAPI.getAll()
-      return response.data
+      return response.data.data || response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch events')
     }
