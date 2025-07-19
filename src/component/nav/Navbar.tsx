@@ -28,11 +28,11 @@ const Navbar = () => {
   }
 
   const getDashboardPath = () =>
-    user?.role === 'admin' ? '/admin-dashboard' : '/customer-dashboard'
+    user?.role === 'admin' ? '/admin-dashboard' : '/user-dashboard'
 
   // Check if we're on a dashboard page
   const isDashboardPage = location.pathname.includes('/admin-dashboard') || 
-                         location.pathname.includes('/customer-dashboard') ||
+                         location.pathname.includes('/user-dashboard') ||
                          location.pathname.includes('/dashboard')
 
   return (
@@ -95,7 +95,7 @@ const Navbar = () => {
           <div className="flex items-center ml-2 lg:ml-8">
             <img src={logo} alt="Logo" className="w-14 h-14 rounded-xl bg-white p-1" />
             <span className="ml-3 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-purple-600 hidden sm:block">
-              DreamWheels
+              Crytsal Events
             </span>
           </div>
         </div>
