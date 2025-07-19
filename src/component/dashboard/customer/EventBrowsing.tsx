@@ -80,7 +80,7 @@ const EventBrowsing = () => {
             {event.image_url && (
               <figure>
                 <img
-                  src={event.image_url.startsWith('http') ? event.image_url : `http://localhost:3000${event.image_url}`}
+                  src={event.image_url.startsWith('http') ? event.image_url : `http://localhost:8088${event.image_url}`}
                   alt={event.title}
                   className="w-full h-48 object-cover"
                 />
