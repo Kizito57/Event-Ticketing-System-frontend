@@ -5,9 +5,9 @@ import { type AppDispatch, type RootState } from '../../store/store'
 import UserManagement from './admin/UserManagement'
 import EventManagement from './admin/EventManagement'
 import BookingManagement from './admin/BookingManagement'
-// import VenueManagement from './admin/VenueManagement'
-// import PaymentManagement from './admin/PaymentManagement'
-// import SupportTicketManagement from './admin/SupportTicketManagement'
+import VenueManagement from './admin/VenueManagement'
+import PaymentManagement from './admin/PaymentManagement'
+import SupportTicketManagement from './admin/SupportTicketManagement'
 import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
@@ -34,12 +34,12 @@ const AdminDashboard = () => {
         return <EventManagement />
       case 'bookings':
         return <BookingManagement />
-    //     case 'venues':
-    //   return <VenueManagement />
-    // case 'payments':
-    //   return <PaymentManagement />
-    // case 'support':
-    //   return <SupportTicketManagement />
+        case 'venues':
+      return <VenueManagement />
+    case 'payments':
+      return <PaymentManagement />
+    case 'support':
+      return <SupportTicketManagement />
       case 'profile':
         return <Profile />
       default:

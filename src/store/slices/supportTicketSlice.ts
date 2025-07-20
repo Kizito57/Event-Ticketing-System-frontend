@@ -9,6 +9,11 @@ interface SupportTicket {
   status: string
   created_at?: string
   updated_at?: string
+  user?: {
+    first_name: string
+    last_name: string
+    email: string
+  }
 }
 
 interface SupportTicketState {
