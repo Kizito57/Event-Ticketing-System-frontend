@@ -16,6 +16,7 @@ export const store = configureStore({
     venues: venueReducer,
     payments: paymentReducer,
     supportTickets: supportTicketReducer,
+    
   },
 })
 

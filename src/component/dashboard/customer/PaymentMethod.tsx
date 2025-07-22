@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+
+
 interface PaymentMethod {
   id: number
   type: 'card' | 'paypal' | 'bank'
@@ -22,7 +24,7 @@ interface PaymentMethod {
   bankName?: string
 }
 
-const PaymentMethod: React.FC = () => {
+const PaymentMethods: React.FC = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     {
       id: 1,
@@ -382,4 +384,4 @@ const PaymentMethod: React.FC = () => {
   )
 }
 
-export default PaymentMethod
+export default PaymentMethods

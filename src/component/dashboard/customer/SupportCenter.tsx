@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Plus, Search, AlertCircle, Clock, CheckCircle, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import { type RootState,type AppDispatch } from '../../../store/store'
-import { fetchTickets, createTicket } from '../../../store/slices/supportTicketSlice'
+import { fetchUserTickets, createTicket } from '../../../store/slices/supportTicketSlice'
 
 // interface SupportTicket {
 //   ticket_id: number
@@ -25,8 +25,10 @@ const SupportCenter: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
-    dispatch(fetchTickets())
-  }, [dispatch])
+    if (user?.user_id) {
+    dispatch(fetchUserTickets(user.user_id))
+    }
+  }, [dispatch,user])
 
   const filteredTickets = tickets.filter(ticket =>
     ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -37,6 +37,18 @@ export const fetchTickets = createAsyncThunk('supportTickets/fetchAll', async (_
   }
 })
 
+export const fetchUserTickets = createAsyncThunk(
+  'supportTickets/fetchUserTickets', 
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const response = await supportTicketsAPI.getUserTickets(userId)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch user tickets')
+    }
+  }
+)
+
 export const createTicket = createAsyncThunk(
   'supportTickets/create',
   async (ticketData: any, { rejectWithValue }) => {
@@ -80,6 +92,7 @@ const supportTicketSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch tickets
       .addCase(fetchTickets.pending, (state) => {
         state.loading = true
         state.error = null
@@ -92,18 +105,60 @@ const supportTicketSlice = createSlice({
         state.loading = false
         state.error = action.payload as string
       })
+      // Fetch user tickets
+      .addCase(fetchUserTickets.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchUserTickets.fulfilled, (state, action) => {
+        state.loading = false
+        state.tickets = action.payload
+      })
+      .addCase(fetchUserTickets.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      // Create ticket
+      .addCase(createTicket.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(createTicket.fulfilled, (state, action) => {
         state.loading = false
         state.tickets.push(action.payload)
       })
+      .addCase(createTicket.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      // Update ticket
+      .addCase(updateTicket.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(updateTicket.fulfilled, (state, action) => {
+        state.loading = false
         const index = state.tickets.findIndex((t) => t.ticket_id === action.payload.ticket_id)
         if (index !== -1) {
           state.tickets[index] = action.payload
         }
       })
+      .addCase(updateTicket.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      // Delete ticket
+      .addCase(deleteTicket.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(deleteTicket.fulfilled, (state, action) => {
+        state.loading = false
         state.tickets = state.tickets.filter((t) => t.ticket_id !== action.payload)
+      })
+      .addCase(deleteTicket.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
       })
   },
 })

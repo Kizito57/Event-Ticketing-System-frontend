@@ -1,16 +1,36 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { type AppDispatch, type RootState } from '../../../store/store'
-import { fetchBookings, deleteBooking } from '../../../store/slices/bookingSlice'
+import { fetchUserBookings, deleteBooking } from '../../../store/slices/bookingSlice'
 
 const MyBookings = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { bookings, loading, error } = useSelector((state: RootState) => state.bookings)
   const { user } = useSelector((state: RootState) => state.auth)
 
-  useEffect(() => {
-    dispatch(fetchBookings())
-  }, [dispatch])
+  
+// useEffect(() => {
+//   console.log('User ID in MyBookings:', user?.user_id);
+//   if (user?.user_id) {
+//     dispatch(fetchUserBookings(user.user_id));
+//   }
+// }, [dispatch, user?.user_id]);
+// useEffect(() => {
+//   console.log('Logged in user:', user)
+//   console.log('Token in storage:', localStorage.getItem('token'))
+//   if (user?.user_id) {
+//     dispatch(fetchUserBookings(user.user_id))
+//   }
+// }, [dispatch, user?.user_id])
+
+useEffect(() => {
+  if (user && user.user_id) {
+    dispatch(fetchUserBookings(user.user_id))
+  }
+}, [dispatch, user?.user_id]) // use user?.user_id as dependency
+
+console.log('👤 Current user:', user)
+console.log('📦 Bookings:', bookings)
 
   const handleCancelBooking = (id: number) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {

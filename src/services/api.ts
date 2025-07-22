@@ -44,13 +44,15 @@ export const eventsAPI = {
 // =================== BOOKINGS =================== //
 export const bookingAPI = {
   getAll: () => api.get('/bookings'),
-  getById: (id: number) => api.get(`/bookings/${id}`),
+  getByUserId: (userId: number) => api.get(`/bookings/user/${userId}`),
+
+  // getById: (id: number) => api.get(`/bookings/${id}`),
   create: (data: any) => api.post('/bookings', data),
   update: (id: number, data: any) => api.put(`/bookings/${id}`, data),
   delete: (id: number) => api.delete(`/bookings/${id}`),
 }
 
-// =================== VENUES =================== //
+// =================== VENUES ====================//
 export const venuesAPI = {
   getAll: () => api.get('/venues'),
   getById: (id: number) => api.get(`/venues/${id}`),
@@ -72,7 +74,15 @@ export const paymentsAPI = {
 export const supportTicketsAPI = {
   getAll: () => api.get('/support-tickets'),
   getById: (id: number) => api.get(`/support-tickets/${id}`),
+  getUserTickets: (userId: number) => api.get(`/support-tickets/user/${userId}`), 
   create: (data: any) => api.post('/support-tickets', data),
   update: (id: number, data: any) => api.put(`/support-tickets/${id}`, data),
-  delete: (id: number) => api.delete(`/support-tickets/${id}`),
+  delete: (id: number) => api.delete(`/support-tickets/${id}`)
+}
+
+
+// =================== MPESA =================== //
+export const mpesaAPI = {
+  initiateSTKPush: (data: { phoneNumber: string; amount: number }) =>
+    api.post('/api/mpesa/stk-push', data),
 }

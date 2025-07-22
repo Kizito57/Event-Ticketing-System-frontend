@@ -37,6 +37,19 @@ export const fetchBookings = createAsyncThunk(
   }
 )
 
+// Fetch all bookings by user id
+export const fetchUserBookings = createAsyncThunk(
+  'bookings/fetchByUser',
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const response = await bookingAPI.getByUserId(userId)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch your bookings')
+    }
+  }
+)
+
 // Create new booking
 export const createBooking = createAsyncThunk(
   'bookings/create',
@@ -89,7 +102,7 @@ const bookingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch bookings
+      // Fetch all bookings
       .addCase(fetchBookings.pending, (state) => {
         state.loading = true
         state.error = null
@@ -99,6 +112,20 @@ const bookingSlice = createSlice({
         state.bookings = action.payload
       })
       .addCase(fetchBookings.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      
+      // Fetch user bookings - THIS WAS MISSING!
+      .addCase(fetchUserBookings.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchUserBookings.fulfilled, (state, action) => {
+        state.loading = false
+        state.bookings = action.payload
+      })
+      .addCase(fetchUserBookings.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
