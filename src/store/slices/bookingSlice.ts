@@ -76,6 +76,19 @@ export const updateBooking = createAsyncThunk(
   }
 )
 
+// Update booking status (specifically for payment confirmation)
+export const updateBookingStatus = createAsyncThunk(
+  'bookings/updateStatus',
+  async ({ bookingId, status }: { bookingId: number; status: string }, { rejectWithValue }) => {
+    try {
+      const response = await bookingAPI.update(bookingId, { booking_status: status })
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to update booking status')
+    }
+  }
+)
+
 // Delete booking
 export const deleteBooking = createAsyncThunk(
   'bookings/delete',
@@ -99,6 +112,15 @@ const bookingSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload
     },
+    // Local state update for immediate UI feedback
+    updateBookingStatusLocal: (state, action) => {
+      const { bookingId, status } = action.payload
+      const booking = state.bookings.find(b => b.booking_id === bookingId)
+      if (booking) {
+        booking.booking_status = status
+        booking.updated_at = new Date().toISOString()
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -116,7 +138,7 @@ const bookingSlice = createSlice({
         state.error = action.payload as string
       })
       
-      // Fetch user bookings - THIS WAS MISSING!
+      // Fetch user bookings
       .addCase(fetchUserBookings.pending, (state) => {
         state.loading = true
         state.error = null
@@ -161,6 +183,23 @@ const bookingSlice = createSlice({
         state.error = action.payload as string
       })
       
+      // Update booking status (for payment confirmation)
+      .addCase(updateBookingStatus.pending, (state) => {
+        state.loading = false // Don't show loading for status updates
+        state.error = null
+      })
+      .addCase(updateBookingStatus.fulfilled, (state, action) => {
+        state.loading = false
+        const index = state.bookings.findIndex(booking => booking.booking_id === action.payload.booking_id)
+        if (index !== -1) {
+          state.bookings[index] = action.payload
+        }
+      })
+      .addCase(updateBookingStatus.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      
       // Delete booking
       .addCase(deleteBooking.pending, (state) => {
         state.loading = true
@@ -177,5 +216,5 @@ const bookingSlice = createSlice({
   },
 })
 
-export const { clearError, setLoading } = bookingSlice.actions
+export const { clearError, setLoading, updateBookingStatusLocal } = bookingSlice.actions
 export default bookingSlice.reducer
