@@ -80,7 +80,7 @@ export const supportTicketsAPI = {
 
 // =================== MPESA =================== //
 export const mpesaAPI = {
-  initiateSTKPush: (data: { phoneNumber: string; amount: number }) =>
+  initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>
     api.post('/api/mpesa/stk-push', data),
 };
 
