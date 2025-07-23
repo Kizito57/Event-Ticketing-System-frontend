@@ -6,6 +6,7 @@ import bookingReducer from './slices/bookingSlice'
 import venueReducer from './slices/venueSlice'
 import paymentReducer from './slices/paymentSlice'
 import supportTicketReducer from './slices/supportTicketSlice'
+import ticketMessagesReducer from './slices/messageSlice'
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     venues: venueReducer,
     payments: paymentReducer,
     supportTickets: supportTicketReducer,
+    ticketMessages: ticketMessagesReducer,
     
   },
 })

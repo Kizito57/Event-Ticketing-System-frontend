@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { HelpCircle, Search, Clock, CheckCircle, AlertCircle, Eye, Reply } from 'lucide-react'
+import { HelpCircle, Search, Clock, CheckCircle, AlertCircle, Eye, Reply, Send, User, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { type RootState, type AppDispatch } from '../../../store/store'
 import { fetchTickets, updateTicket } from '../../../store/slices/supportTicketSlice'
+import { fetchMessagesByTicketId, sendMessage, clearMessages } from '../../../store/slices/messageSlice'
 
 const SupportTicketManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -13,11 +14,25 @@ const SupportTicketManagement: React.FC = () => {
   const [response, setResponse] = useState('')
 
   const dispatch = useDispatch<AppDispatch>()
-  const { tickets} = useSelector((state: RootState) => state.supportTickets)
+  const { tickets } = useSelector((state: RootState) => state.supportTickets)
+  const { messages, loading: messagesLoading } = useSelector((state: RootState) => state.ticketMessages)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
     dispatch(fetchTickets())
   }, [dispatch])
+
+  // Fetch messages when a ticket is selected
+  useEffect(() => {
+    if (selectedTicket && showModal) {
+      dispatch(fetchMessagesByTicketId(selectedTicket.ticket_id))
+    }
+    return () => {
+      if (!showModal) {
+        dispatch(clearMessages())
+      }
+    }
+  }, [selectedTicket, showModal, dispatch])
 
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,19 +45,15 @@ const SupportTicketManagement: React.FC = () => {
     try {
       await dispatch(updateTicket({ id: ticketId, ticketData: { status: newStatus } })).unwrap()
       toast.success(`Ticket status updated to ${newStatus}`)
+      
+      // Update the selected ticket if it's the one being updated
+      if (selectedTicket && selectedTicket.ticket_id === ticketId) {
+        setSelectedTicket({ ...selectedTicket, status: newStatus })
+      }
     } catch (error) {
       toast.error('Failed to update ticket status')
     }
   }
-
-//   const getStatusIcon = (status: string) => {
-//     const icons = {
-//       'Open': <AlertCircle className="h-4 w-4" />,
-//       'In Progress': <Clock className="h-4 w-4" />,
-//       'Closed': <CheckCircle className="h-4 w-4" />
-//     }
-//     return icons[status as keyof typeof icons] || <HelpCircle className="h-4 w-4" />
-//   }
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -60,14 +71,41 @@ const SupportTicketManagement: React.FC = () => {
     closed: tickets.filter(t => t.status === 'Closed').length
   }
 
-  const sendResponse = () => {
-    if (response.trim()) {
-      toast.success('Response sent successfully')
-      setResponse('')
-      setShowModal(false)
-    } else {
-      toast.error('Please enter a response')
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!response.trim() || !selectedTicket || !user) {
+      toast.error('Please enter a message')
+      return
     }
+
+    try {
+      await dispatch(sendMessage({
+        ticket_id: selectedTicket.ticket_id,
+        sender_id: user.user_id,
+        content: response.trim()
+      })).unwrap()
+      
+      toast.success('Message sent successfully')
+      setResponse('')
+    } catch (error) {
+      toast.error('Failed to send message')
+    }
+  }
+
+  const formatMessageTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const isAdminMessage = (senderId: number) => {
+    // You might want to check if the sender is an admin user
+    // For now, assuming messages from current admin user are admin messages
+    return senderId === user?.user_id
   }
 
   return (
@@ -160,9 +198,7 @@ const SupportTicketManagement: React.FC = () => {
                   </select>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
-                  {/* {new Date(ticket.created_at).toLocaleDateString()} */}
                   {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A'}
-
                 </td>
                 <td className="px-6 py-4">
                   <button
@@ -181,80 +217,152 @@ const SupportTicketManagement: React.FC = () => {
         </table>
       </div>
 
-      {/* Details Modal */}
+      {/* Details Modal with Messaging */}
       {showModal && selectedTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b">
               <h3 className="text-lg font-semibold">Ticket #{selectedTicket.ticket_id}</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              <button 
+                onClick={() => {
+                  setShowModal(false)
+                  setSelectedTicket(null)
+                  dispatch(clearMessages())
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Ticket Info */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">{selectedTicket.subject}</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Customer: </span>
-                    {selectedTicket.user?.first_name} {selectedTicket.user?.last_name}
+            <div className="flex flex-1 overflow-hidden">
+              {/* Left Side - Ticket Details */}
+              <div className="w-1/3 p-6 border-r bg-gray-50">
+                <div className="space-y-4">
+                  {/* Ticket Info */}
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">{selectedTicket.subject}</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-gray-600">Customer: </span>
+                        <span className="font-medium">
+                          {selectedTicket.user?.first_name} {selectedTicket.user?.last_name}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Email: </span>
+                        <span>{selectedTicket.user?.email}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Created: </span>
+                        <span>{new Date(selectedTicket.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Status: </span>
+                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(selectedTicket.status)}`}>
+                          {selectedTicket.status}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Created: </span>
-                    {new Date(selectedTicket.created_at).toLocaleDateString()}
+
+                  {/* Description */}
+                  <div className="bg-white p-4 rounded-lg">
+                    <h5 className="font-medium mb-2">Description</h5>
+                    <p className="text-gray-700 text-sm">{selectedTicket.description}</p>
+                  </div>
+
+                  {/* Status Actions */}
+                  <div className="space-y-2">
+                    <h5 className="font-medium">Quick Actions</h5>
+                    {['In Progress', 'Closed'].map(status => (
+                      <button
+                        key={status}
+                        onClick={() => handleStatusUpdate(selectedTicket.ticket_id, status)}
+                        className={`w-full px-3 py-2 rounded-lg text-white text-sm ${
+                          status === 'In Progress' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
+                        }`}
+                      >
+                        Mark {status}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="border p-4 rounded-lg">
-                <h5 className="font-medium mb-2">Description</h5>
-                <p className="text-gray-700">{selectedTicket.description}</p>
-              </div>
+              {/* Right Side - Messages */}
+              <div className="flex-1 flex flex-col">
+                {/* Messages Header */}
+                <div className="p-4 border-b bg-gray-50">
+                  <h4 className="font-medium flex items-center">
+                    <Reply className="h-5 w-5 mr-2" />
+                    Conversation
+                  </h4>
+                </div>
 
-              {/* Response */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h5 className="font-medium mb-3 flex items-center">
-                  <Reply className="h-5 w-5 mr-2" />
-                  Admin Response
-                </h5>
-                <textarea
-                  value={response}
-                  onChange={(e) => setResponse(e.target.value)}
-                  placeholder="Type your response here..."
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={4}
-                />
-              </div>
+                {/* Messages List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {messagesLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Reply className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                      <p>No messages yet. Start the conversation!</p>
+                    </div>
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.message_id}
+                        className={`flex ${isAdminMessage(message.sender_id) ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            isAdminMessage(message.sender_id)
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 text-gray-900'
+                          }`}
+                        >
+                          <div className="flex items-center mb-1">
+                            {isAdminMessage(message.sender_id) ? (
+                              <Users className="h-3 w-3 mr-1" />
+                            ) : (
+                              <User className="h-3 w-3 mr-1" />
+                            )}
+                            <span className="text-xs opacity-75">
+                              {isAdminMessage(message.sender_id) ? 'Admin' : 'Customer'}
+                            </span>
+                          </div>
+                          <p className="text-sm">{message.content}</p>
+                          <p className="text-xs mt-1 opacity-75">
+                            {formatMessageTime(message.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
 
-              {/* Actions */}
-              <div className="flex justify-between">
-                <div className="space-x-2">
-                  {['In Progress', 'Closed'].map(status => (
+                {/* Message Input */}
+                <div className="p-4 border-t bg-gray-50">
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={response}
+                      onChange={(e) => setResponse(e.target.value)}
+                      placeholder="Type your message..."
+                      className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
                     <button
-                      key={status}
-                      onClick={() => handleStatusUpdate(selectedTicket.ticket_id, status)}
-                      className={`px-4 py-2 rounded-lg text-white ${
-                        status === 'In Progress' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'
-                      }`}
+                      type="submit"
+                      disabled={!response.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                     >
-                      Mark {status}
+                      <Send className="h-4 w-4" />
                     </button>
-                  ))}
-                </div>
-                <div className="space-x-3">
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={sendResponse}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Send Response
-                  </button>
+                  </form>
                 </div>
               </div>
             </div>
