@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react' 
 import { useDispatch, useSelector } from 'react-redux'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import { fetchEvents } from '../../../store/slices/eventSlice'
@@ -20,6 +20,13 @@ const EventBrowsing = () => {
 
   const handleBookEvent = (event: any) => {
     setSelectedEvent(event)
+  }
+
+  // Example placeholder for Venue button click handler
+  // You can modify this to open a venue modal, redirect, etc.
+  const handleVenueClick = (event: any) => {
+    alert(`Venue button clicked for: ${event.title}`)
+    // TODO: Implement venue modal or navigation
   }
 
   const handleBookingSubmit = (e: React.FormEvent) => {
@@ -95,7 +102,15 @@ const EventBrowsing = () => {
                 <p><strong>Price:</strong> ${event.ticket_price}</p>
                 <p><strong>Available:</strong> {event.tickets_total - event.tickets_sold} tickets</p>
               </div>
-              <div className="card-actions justify-end">
+              <div className="card-actions justify-end space-x-2">
+                {/* Venue button on the left */}
+                <button
+                  onClick={() => handleVenueClick(event)}
+                  className="btn btn-secondary"
+                >
+                  Venue
+                </button>
+                {/* Book Now button on the right */}
                 <button
                   onClick={() => handleBookEvent(event)}
                   className="btn btn-primary"
@@ -108,41 +123,40 @@ const EventBrowsing = () => {
         ))}
       </div>
 
-{selectedEvent && (
-  <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-white w-11/12 max-w-md p-6 rounded-lg shadow-lg z-50">
-    <h3 className="font-bold text-lg mb-4">Book {selectedEvent.title}</h3>
-    <form onSubmit={handleBookingSubmit}>
-      <div className="form-control mb-4">
-        <label htmlFor="quantity" className="label">
-          <span className="label-text">Quantity</span>
-        </label>
-        <input
-          id="quantity"
-          type="number"
-          min="1"
-          max={selectedEvent.tickets_total - selectedEvent.tickets_sold}
-          value={bookingData.quantity}
-          onChange={(e) => setBookingData({ ...bookingData, quantity: e.target.value })}
-          className="input input-bordered w-full"
-          required
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <button
-          type="button"
-          onClick={() => setSelectedEvent(null)}
-          className="btn btn-ghost"
-        >
-          Cancel
-        </button>
-        <button type="submit" className="btn btn-primary">
-          Confirm Booking
-        </button>
-      </div>
-    </form>
-  </div>
-)}
-
+      {selectedEvent && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-white w-11/12 max-w-md p-6 rounded-lg shadow-lg z-50">
+          <h3 className="font-bold text-lg mb-4">Book {selectedEvent.title}</h3>
+          <form onSubmit={handleBookingSubmit}>
+            <div className="form-control mb-4">
+              <label htmlFor="quantity" className="label">
+                <span className="label-text">Quantity</span>
+              </label>
+              <input
+                id="quantity"
+                type="number"
+                min="1"
+                max={selectedEvent.tickets_total - selectedEvent.tickets_sold}
+                value={bookingData.quantity}
+                onChange={(e) => setBookingData({ ...bookingData, quantity: e.target.value })}
+                className="input input-bordered w-full"
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setSelectedEvent(null)}
+                className="btn btn-ghost"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Confirm Booking
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

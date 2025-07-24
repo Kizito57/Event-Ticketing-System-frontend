@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8088';
+// const API_BASE_URL = 'https://ef045521384b.ngrok-free.app';
+// const API_BASE_URL = 'https://event-ticketing-system-backend.onrender.com';
 // const neon_d=https://car-rental-backend-ps2q.onrender.com
 
 const api = axios.create({
@@ -79,9 +81,16 @@ export const supportTicketsAPI = {
 };
 
 // =================== MPESA =================== //
+// export const mpesaAPI = {
+//   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>
+//     api.post('/api/mpesa/stk-push', data),
+// };
+
+const MPESA_BASE_URL = 'https://42a1c80dcea6.ngrok-free.app';
+
 export const mpesaAPI = {
   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>
-    api.post('/api/mpesa/stk-push', data),
+    axios.post(`${MPESA_BASE_URL}/api/mpesa/stk-push`, data),
 };
 
 // =================== TICKET MESSAGES =================== //

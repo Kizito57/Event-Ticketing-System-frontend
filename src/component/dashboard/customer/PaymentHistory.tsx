@@ -8,7 +8,6 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  
   DollarSign
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -50,9 +49,19 @@ const PaymentHistory: React.FC = () => {
     }
   }
 
+  // Safe number conversion with fallback
+  const toNumber = (value: any): number => {
+    const num = typeof value === 'string' ? parseFloat(value) : Number(value)
+    return isNaN(num) ? 0 : num
+  }
+
   const stats = {
-    totalPaid: payments.filter(p => p.payment_status === 'Completed').reduce((sum, p) => sum + p.amount, 0),
-    pendingAmount: payments.filter(p => p.payment_status === 'Pending').reduce((sum, p) => sum + p.amount, 0),
+    totalPaid: payments
+      .filter(p => p.payment_status === 'Completed')
+      .reduce((sum, p) => sum + toNumber(p.amount), 0),
+    pendingAmount: payments
+      .filter(p => p.payment_status === 'Pending')
+      .reduce((sum, p) => sum + toNumber(p.amount), 0),
     totalTransactions: payments.length
   }
 
@@ -96,7 +105,7 @@ const PaymentHistory: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Paid</p>
-              <p className="text-xl font-bold text-green-600">${stats.totalPaid.toFixed(2)}</p>
+              <p className="text-xl font-bold text-green-600">KES {stats.totalPaid.toFixed(2)}</p>
             </div>
             <DollarSign className="h-6 w-6 text-green-600" />
           </div>
@@ -106,7 +115,7 @@ const PaymentHistory: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-xl font-bold text-yellow-600">${stats.pendingAmount.toFixed(2)}</p>
+              <p className="text-xl font-bold text-yellow-600">KES {stats.pendingAmount.toFixed(2)}</p>
             </div>
             <Clock className="h-6 w-6 text-yellow-600" />
           </div>
@@ -171,7 +180,7 @@ const PaymentHistory: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                   <div>
                     <span className="text-gray-600">Amount:</span>
-                    <p className="font-medium">${payment.amount}</p>
+                    <p className="font-medium">KES {toNumber(payment.amount).toFixed(2)}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">Booking:</span>
@@ -238,7 +247,7 @@ const PaymentHistory: React.FC = () => {
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-gray-900 mb-2">
-                  ${selectedPayment.amount}
+                  KES {toNumber(selectedPayment.amount).toFixed(2)}
                 </div>
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedPayment.payment_status)}`}>
                   {getStatusIcon(selectedPayment.payment_status)}

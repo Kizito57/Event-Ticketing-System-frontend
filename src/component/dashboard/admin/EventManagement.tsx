@@ -49,7 +49,7 @@ const EventManagement = () => {
         const uploadFormData = new FormData()
         uploadFormData.append('file', imageFile)
 
-        const uploadResponse = await fetch('http://localhost:3000/api/upload', {
+        const uploadResponse = await fetch('http://localhost:8088/api/upload', {
           method: 'POST',
           body: uploadFormData
         })
@@ -271,7 +271,7 @@ const EventManagement = () => {
                       </label>
                       <div className="w-full h-48 border-2 border-dashed border-base-300 rounded-lg overflow-hidden">
                         <img
-                          src={imagePreview.startsWith('data:') ? imagePreview : `http://localhost:3000${imagePreview}`}
+                          src={imagePreview.startsWith('data:') ? imagePreview : `http://localhost:8088${imagePreview}`}
                           alt="Event preview"
                           className="w-full h-full object-cover"
                         />
