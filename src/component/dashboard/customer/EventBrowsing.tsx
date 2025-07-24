@@ -1,32 +1,42 @@
-import { useEffect, useState } from 'react' 
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { MapPin,  Users, Building } from 'lucide-react'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import { fetchEvents } from '../../../store/slices/eventSlice'
 import { createBooking } from '../../../store/slices/bookingSlice'
+import { fetchVenues } from '../../../store/slices/venueSlice'
 
 const EventBrowsing = () => {
   const dispatch = useDispatch<AppDispatch>()
   const { events, loading, error } = useSelector((state: RootState) => state.events)
+  const { venues } = useSelector((state: RootState) => state.venues)
   const { user } = useSelector((state: RootState) => state.auth)
 
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
+  const [selectedVenue, setSelectedVenue] = useState<any>(null)
+  const [showVenueModal, setShowVenueModal] = useState(false)
+
   const [bookingData, setBookingData] = useState({
     quantity: ''
   })
 
   useEffect(() => {
     dispatch(fetchEvents())
+    dispatch(fetchVenues())
   }, [dispatch])
 
   const handleBookEvent = (event: any) => {
     setSelectedEvent(event)
   }
 
-  // Example placeholder for Venue button click handler
-  // You can modify this to open a venue modal, redirect, etc.
   const handleVenueClick = (event: any) => {
-    alert(`Venue button clicked for: ${event.title}`)
-    // TODO: Implement venue modal or navigation
+    const venue = venues.find(v => v.venue_id === event.venue_id)
+    if (venue) {
+      setSelectedVenue(venue)
+      setShowVenueModal(true)
+    } else {
+      alert('Venue not found.')
+    }
   }
 
   const handleBookingSubmit = (e: React.FormEvent) => {
@@ -103,14 +113,12 @@ const EventBrowsing = () => {
                 <p><strong>Available:</strong> {event.tickets_total - event.tickets_sold} tickets</p>
               </div>
               <div className="card-actions justify-end space-x-2">
-                {/* Venue button on the left */}
                 <button
                   onClick={() => handleVenueClick(event)}
                   className="btn btn-secondary"
                 >
                   Venue
                 </button>
-                {/* Book Now button on the right */}
                 <button
                   onClick={() => handleBookEvent(event)}
                   className="btn btn-primary"
@@ -123,6 +131,7 @@ const EventBrowsing = () => {
         ))}
       </div>
 
+      {/* Booking Modal */}
       {selectedEvent && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-white w-11/12 max-w-md p-6 rounded-lg shadow-lg z-50">
           <h3 className="font-bold text-lg mb-4">Book {selectedEvent.title}</h3>
@@ -155,6 +164,70 @@ const EventBrowsing = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Venue Modal */}
+      {showVenueModal && selectedVenue && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Venue Details</h2>
+
+            <div className="h-48 mb-4 rounded-lg overflow-hidden">
+              {selectedVenue.image_url ? (
+                <img
+                  src={selectedVenue.image_url.startsWith('http') ? selectedVenue.image_url : `http://localhost:8088${selectedVenue.image_url}`}
+                  alt={selectedVenue.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="bg-gray-200 h-full flex items-center justify-center">
+                  <Building className="h-12 w-12 text-gray-500" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 text-gray-700 text-sm mb-4">
+              <div>
+                <span className="font-semibold">Name:</span> {selectedVenue.name}
+              </div>
+              <div className="flex items-start">
+                <MapPin className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
+                <span>{selectedVenue.address}</span>
+              </div>
+              <div className="flex items-center">
+                <Users className="h-4 w-4 mr-2 text-gray-500" />
+                <span>Capacity: {selectedVenue.capacity.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <h3 className="font-semibold text-gray-800 mb-2">Events at this Venue</h3>
+              {events.filter(e => e.venue_id === selectedVenue.venue_id).length === 0 ? (
+                <p className="text-gray-500 text-sm">No events available for this venue.</p>
+              ) : (
+                <ul className="space-y-1 text-sm text-gray-700">
+                  {events
+                    .filter(e => e.venue_id === selectedVenue.venue_id)
+                    .map(e => (
+                      <li key={e.event_id} className="flex justify-between border-b pb-1">
+                        <span>{e.title}</span>
+                        <span className="text-gray-500">{new Date(e.date).toLocaleDateString()}</span>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowVenueModal(false)}
+                className="btn btn-sm btn-outline"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
