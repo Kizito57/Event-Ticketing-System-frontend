@@ -5,7 +5,7 @@ import * as yup from 'yup'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
-import { FaCar, FaEye, FaEyeSlash, FaEnvelope, FaLock, FaUser, FaShieldAlt } from 'react-icons/fa'
+import { FaTicketAlt, FaEye, FaEyeSlash, FaEnvelope, FaLock, FaUser, FaShieldAlt } from 'react-icons/fa'
 import { type AppDispatch, type RootState } from '../../store/store'
 import { loginUser, clearError } from '../../store/slices/authSlice'
 
@@ -55,11 +55,11 @@ const Login = () => {
   }, [dispatch])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center px-4 py-8">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-200 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-200 rounded-full opacity-20 blur-3xl"></div>
       </div>
 
       <div className="w-full max-w-md relative">
@@ -69,10 +69,10 @@ const Login = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-              <FaCar className="text-blue-600 text-2xl" />
+              <FaTicketAlt className="text-emerald-600 text-2xl" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to access your RentCar Pro account</p>
+            <p className="text-gray-600">Sign in to access your Crystal Events account</p>
           </div>
 
           {/* Error Alert */}
@@ -147,7 +147,7 @@ const Login = () => {
                 <input type="checkbox" className="checkbox checkbox-sm checkbox-primary" />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
-              <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 transition-colors">
+              <a href="/forgot-password" className="text-sm text-green-600 hover:text-emerald-700 transition-colors">
                 Forgot password?
               </a>
             </div>
@@ -155,7 +155,7 @@ const Login = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className={`btn w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] ${loading ? 'loading' : ''}`}
+              className={`btn w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white border-0 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] ${loading ? 'loading' : ''}`}
               disabled={loading}
             >
               {loading ? (
@@ -175,8 +175,8 @@ const Login = () => {
           {/* Footer Links */}
           <div className="text-center mt-8 space-y-3">
             <p className="text-gray-600">
-              New to RentCar Pro?{' '}
-              <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              New to Crystal Events?{' '}
+              <a href="/register" className="text-green-600 hover:text-emerald-700 font-medium transition-colors">
                 Create an account
               </a>
             </p>

@@ -10,7 +10,6 @@ import {
   BarChart3,
   UserPlus,
   LogIn,
-//   User,
   Menu,
   LogOut,
 } from 'lucide-react'
@@ -30,10 +29,10 @@ const Navbar = () => {
   const getDashboardPath = () =>
     user?.role === 'admin' ? '/admin-dashboard' : '/user-dashboard'
 
-  // Check if we're on a dashboard page
-  const isDashboardPage = location.pathname.includes('/admin-dashboard') || 
-                         location.pathname.includes('/user-dashboard') ||
-                         location.pathname.includes('/dashboard')
+  const isDashboardPage =
+    location.pathname.includes('/admin-dashboard') ||
+    location.pathname.includes('/user-dashboard') ||
+    location.pathname.includes('/dashboard')
 
   return (
     <div className="sticky top-0 z-50 backdrop-blur-md bg-gradient-to-r from-slate-50/90 to-white/90 border-b border-slate-200/50">
@@ -79,7 +78,6 @@ const Navbar = () => {
                   </li>
                 </>
               ) : (
-                // Only show logout in mobile dropdown if NOT on dashboard
                 !isDashboardPage && (
                   <li>
                     <button onClick={handleLogout} className="menu-item text-red-600">
@@ -94,7 +92,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center ml-2 lg:ml-8">
             <img src={logo} alt="Logo" className="w-14 h-14 rounded-xl bg-white p-1" />
-            <span className="ml-3 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-purple-600 hidden sm:block">
+            <span className="ml-3 font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-emerald-600 hidden sm:block">
               Crytsal Events
             </span>
           </div>
@@ -127,18 +125,26 @@ const Navbar = () => {
         <div className="navbar-end hidden lg:flex gap-3">
           {!isAuthenticated ? (
             <>
-              <NavLink to="/register" className="menu-item">
-                <UserPlus className="w-4 h-4" /> Register
+              <NavLink
+                to="/register"
+                className="btn btn-outline btn-sm border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+              >
+                <UserPlus className="w-4 h-4 mr-1" /> Register
               </NavLink>
-              <NavLink to="/login" className="menu-item bg-indigo-500 text-white hover:bg-indigo-600">
-                <LogIn className="w-4 h-4" /> Login
+              <NavLink
+                to="/login"
+                className="btn btn-sm bg-emerald-500 text-white hover:bg-emerald-600"
+              >
+                <LogIn className="w-4 h-4 mr-1" /> Login
               </NavLink>
             </>
           ) : (
-            // Only show logout button if NOT on dashboard
             !isDashboardPage && (
-              <button onClick={handleLogout} className="menu-item text-red-600 hover:bg-red-100">
-                <LogOut className="w-4 h-4" /> Logout
+              <button
+                onClick={handleLogout}
+                className="btn btn-sm border border-cyan-500 text-green-600 hover:bg-green-50"
+              >
+                <LogOut className="w-4 h-4 mr-1" /> Logout
               </button>
             )
           )}

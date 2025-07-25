@@ -48,7 +48,7 @@ const Register = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-blue-600 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-green-600 rounded-2xl mb-4 shadow-lg">
             <svg
               className="w-8 h-8 text-white"
               fill="none"
@@ -172,7 +172,7 @@ const Register = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className={`btn btn-primary w-full bg-gradient-to-r from-yellow-500 to-blue-600 border-none text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ${
+                className={`btn btn-primary w-full bg-gradient-to-r from-yellow-500 to-green-600 border-none text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ${
                   loading ? 'loading' : ''
                 }`}
                 disabled={loading}
@@ -207,7 +207,7 @@ const Register = () => {
             <div className="text-center">
               <Link
                 to="/login"
-                className="btn btn-ghost text-blue-600 hover:text-yellow-700 hover:bg-emerald-50 transition-colors duration-200"
+                className="btn btn-ghost text-green-600 hover:text-yellow-700 hover:bg-emerald-50 transition-colors duration-200"
               >
                 Sign In Instead
               </Link>

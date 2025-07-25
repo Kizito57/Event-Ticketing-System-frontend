@@ -3,7 +3,7 @@ import { Shield, Car, Calendar, Wrench, ArrowRight, Phone } from 'lucide-react';
 
 const About = () => {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-green-100">
             {/* Hero Section */}
             <div className="container mx-auto px-4 py-12 lg:py-20">
                 <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -11,7 +11,7 @@ const About = () => {
                     {/* Image Section */}
                     <div className="w-full lg:w-1/2 order-2 lg:order-1">
                         <div className="relative group">
-                            <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-500"></div>
+                            <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-3xl blur-2xl opacity-20 group-hover:opacity-30 transition-opacity duration-500"></div>
                             <div className="relative bg-white p-4 rounded-3xl shadow-2xl group-hover:shadow-3xl transition-all duration-500 hover:scale-105">
                                 <img
                                     src={taskManager}

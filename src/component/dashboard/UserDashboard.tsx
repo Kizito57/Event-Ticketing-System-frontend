@@ -10,8 +10,9 @@ import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
   CalendarCheck2, User, LogOut, 
-  ChevronLeft, ChevronRight, Sparkles,
-  Ticket, CreditCard, HelpCircle 
+  ChevronLeft, ChevronRight,
+  Ticket, CreditCard, HelpCircle, 
+  DiamondIcon
 } from 'lucide-react'
 
 const UserDashboard = () => {
@@ -51,7 +52,7 @@ const UserDashboard = () => {
       label: 'Discover Events', 
       icon: Ticket, 
       color: 'text-emerald-500',
-      description: 'Find your perfect ride'
+      description: 'Find your perfect event to enjoy'
     },
     { 
       id: 'bookings', 
@@ -92,20 +93,20 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-cyan-50">
       {/* Enhanced Sidebar */}
       <aside
-        className={`transition-all duration-300 ease-in-out bg-white/90 backdrop-blur-lg shadow-xl border-r border-indigo-100 ${
+        className={`transition-all duration-300 ease-in-out bg-white/90 backdrop-blur-lg shadow-xl border-r border-emerald-100 ${
           sidebarOpen ? 'w-80' : 'w-20'
         } min-h-screen relative`}
       >
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-indigo-100">
+        <div className="p-6 border-b border-emerald-100">
           <div className="flex items-center justify-between">
             {sidebarOpen && (
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 via-green-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <DiamondIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-800 text-lg">Crystal Events</h3>
@@ -137,7 +138,7 @@ const UserDashboard = () => {
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-200 group relative overflow-hidden ${
                       activeTab === item.id
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105'
+                        ? 'bg-gradient-to-r from-blue-500 to-green-600 text-white shadow-lg transform scale-105'
                         : 'text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-800'
                     }`}
                   >
@@ -174,8 +175,8 @@ const UserDashboard = () => {
           
           <button 
             onClick={handleLogout} 
-            className={`btn border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 w-full transition-all duration-200 rounded-xl ${
-              !sidebarOpen ? 'btn-square' : 'bg-red-50/50'
+            className={`btn border-blue-100 text-green-500 hover:bg-emerald-50 hover:border-emerald-200 w-full transition-all duration-200 rounded-xl ${
+              !sidebarOpen ? 'btn-square' : 'bg-green-50/50'
             }`}
           >
             <LogOut className="w-5 h-5" />
@@ -190,7 +191,7 @@ const UserDashboard = () => {
         <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-indigo-100 px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-cyan-600 bg-clip-text text-transparent">
                 {getGreeting()}, {user?.first_name}!
               </h1>
               <p className="text-gray-500 mt-1 text-lg">
@@ -207,7 +208,7 @@ const UserDashboard = () => {
           <div className="p-8">
             <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-sm border border-indigo-100 min-h-full relative overflow-hidden">
               {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-blue-100 to-purple-100 rounded-full -translate-y-32 translate-x-32 opacity-30"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-blue-100 to-green-100 rounded-full -translate-y-32 translate-x-32 opacity-30"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-100 to-yellow-100 rounded-full translate-y-24 -translate-x-24 opacity-30"></div>
               
               <div className="relative z-10 p-8">

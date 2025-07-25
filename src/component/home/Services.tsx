@@ -1,4 +1,4 @@
-// import serviceIMG from '../../assets/images/services.jpg'
+import serviceIMG from '../../assets/images/services.jpg'
 
 const Services = () => {
     return (
@@ -8,11 +8,11 @@ const Services = () => {
                     {/* Image Section */}
                     <div className="flex-1 relative">
                         <div className="relative overflow-hidden rounded-3xl shadow-2xl">
-                            {/* <img
+                            <img
                                 src={serviceIMG}
                                 alt="Our premium car rental services"
                                 className="w-full h-80 lg:h-96 object-cover hover:scale-110 transition-transform duration-500"
-                            /> */}
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-blue-900/30 to-transparent"></div>
                         </div>
                         {/* Service Badge */}
