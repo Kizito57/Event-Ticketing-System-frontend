@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import { fetchEvents, createEvent, updateEvent, deleteEvent } from '../../../store/slices/eventSlice'
+import { API_BASE_URL } from '../../../services/api'; // adjust path as needed
+  
 
 const EventManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -49,7 +51,7 @@ const EventManagement = () => {
         const uploadFormData = new FormData()
         uploadFormData.append('file', imageFile)
 
-        const uploadResponse = await fetch('http://localhost:8088/api/upload', {
+        const uploadResponse = await fetch('${API_BASE_URL}/api/upload', {
           method: 'POST',
           body: uploadFormData
         })
@@ -271,7 +273,7 @@ const EventManagement = () => {
                       </label>
                       <div className="w-full h-48 border-2 border-dashed border-base-300 rounded-lg overflow-hidden">
                         <img
-                          src={imagePreview.startsWith('data:') ? imagePreview : `http://localhost:8088${imagePreview}`}
+                          src={imagePreview.startsWith('data:') ? imagePreview : `${API_BASE_URL}${imagePreview}`}
                           alt="Event preview"
                           className="w-full h-full object-cover"
                         />
@@ -339,7 +341,7 @@ const EventManagement = () => {
                       <div className="w-16 h-12 rounded">
                         {event.image_url ? (
                           <img 
-                            src={event.image_url.startsWith('http') ? event.image_url : `http://localhost:8088${event.image_url}`}
+                            src={event.image_url.startsWith('http') ? event.image_url : `${API_BASE_URL}${event.image_url}`}
                             alt={event.title}
                             className="w-full h-full object-cover"
                           />
