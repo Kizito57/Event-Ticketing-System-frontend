@@ -13,6 +13,8 @@ import {
 import { toast } from 'sonner'
 import { type RootState, type AppDispatch } from '../../../store/store'
 import { fetchPayments } from '../../../store/slices/paymentSlice'
+import { downloadSingleReceipt, downloadAllReceipts } from '../../../utils/receiptUtils'
+
 
 const PaymentHistory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -70,9 +72,21 @@ const PaymentHistory: React.FC = () => {
     setShowModal(true)
   }
 
-  const downloadReceipt = () => {
+  // const downloadReceipt = () => {
+  //   toast.success('Receipt downloaded successfully')
+  // }
+const downloadReceipt = (payment?: any) => {
+  try {
+    if (payment) {
+      downloadSingleReceipt(payment)
+    } else {
+      downloadAllReceipts(payments)
+    }
     toast.success('Receipt downloaded successfully')
+  } catch (err: any) {
+    toast.error(err.message || 'Failed to download receipt')
   }
+}
 
   if (loading) {
     return (
@@ -91,7 +105,7 @@ const PaymentHistory: React.FC = () => {
           <p className="text-gray-600">Track all your payment transactions</p>
         </div>
         <button 
-          onClick={downloadReceipt}
+          onClick={() =>downloadReceipt()}
           className="mt-4 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
           <Download className="h-4 w-4" />
@@ -208,7 +222,7 @@ const PaymentHistory: React.FC = () => {
                 
                 {payment.payment_status === 'Completed' && (
                   <button 
-                    onClick={downloadReceipt}
+                    onClick={() => downloadReceipt(payment)}
                     className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
                   >
                     <Download className="h-4 w-4" />
@@ -290,7 +304,7 @@ const PaymentHistory: React.FC = () => {
                 </button>
                 {selectedPayment.payment_status === 'Completed' && (
                   <button 
-                    onClick={downloadReceipt}
+                    onClick={() => downloadReceipt(selectedPayment)}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     Download Receipt
