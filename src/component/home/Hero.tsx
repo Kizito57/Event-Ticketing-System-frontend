@@ -45,19 +45,19 @@ export const Hero = () => {
                     {/* Features */}
                     <div className="flex flex-wrap gap-3 mb-8 justify-center lg:justify-start">
                         <div className="badge badge-outline badge-lg p-3">
-                            🛡️ Full Insurance
+                            🏛️ Venue Booking
                         </div>
                         <div className="badge badge-outline badge-lg p-3">
-                            🔧 Maintained Fleet
+                            🧑‍🎤 Event Planning
                         </div>
                         <div className="badge badge-outline badge-lg p-3">
-                            📱 Instant Booking
+                            📱 Online Booking
                         </div>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                         <button className="btn btn-primary btn-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200">
-                            🚗 Book Now
+                            📞  Book Now
                         </button>
                         <button className="btn btn-outline btn-lg hover:shadow-lg transition-all duration-200">
                             📋 View Events
