@@ -34,7 +34,7 @@ interface LoginPayload {
 
 interface VerificationPayload {
   email: string
-  verificationCode: string
+  verification_code: string
 }
 
 // Load from localStorage
@@ -66,9 +66,9 @@ export const registerUser = createAsyncThunk(
 
 export const verifyEmail = createAsyncThunk(
   'auth/verify',
-  async ({ email, verificationCode }: VerificationPayload, { rejectWithValue }) => {
+  async ({ email, verification_code }: VerificationPayload, { rejectWithValue }) => {
     try {
-      const response = await authAPI.verify(email, verificationCode)
+      const response = await authAPI.verify(email, verification_code)
       return response.data
     } catch (error: any) {
       return rejectWithValue(error?.response?.data?.error || 'Verification failed')

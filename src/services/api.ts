@@ -65,6 +65,7 @@ export const venuesAPI = {
 export const paymentsAPI = {
   getAll: () => api.get('/payments'),
   getById: (id: number) => api.get(`/payments/${id}`),
+  getByUserId: (userId: number) => api.get(`/payments/user/${userId}`), // Add this new endpoint
   create: (data: any) => api.post('/payments', data),
   update: (id: number, data: any) => api.put(`/payments/${id}`, data),
   delete: (id: number) => api.delete(`/payments/${id}`),

@@ -25,6 +25,20 @@ const initialState: PaymentState = {
   error: null,
 }
 
+// Fetch payments by user ID instead of all payments
+export const fetchPaymentsByUserId = createAsyncThunk(
+  'payments/fetchByUserId', 
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const response = await paymentsAPI.getByUserId(userId)
+      return response.data
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch payments')
+    }
+  }
+)
+
+// Keep the old fetchPayments for admin use only
 export const fetchPayments = createAsyncThunk('payments/fetchAll', async (_, { rejectWithValue }) => {
   try {
     const response = await paymentsAPI.getAll()
@@ -86,6 +100,18 @@ const paymentSlice = createSlice({
         state.payments = action.payload
       })
       .addCase(fetchPayments.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      .addCase(fetchPaymentsByUserId.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(fetchPaymentsByUserId.fulfilled, (state, action) => {
+        state.loading = false
+        state.payments = action.payload
+      })
+      .addCase(fetchPaymentsByUserId.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

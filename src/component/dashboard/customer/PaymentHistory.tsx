@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { type RootState, type AppDispatch } from '../../../store/store'
-import { fetchPayments } from '../../../store/slices/paymentSlice'
+import { fetchPaymentsByUserId } from '../../../store/slices/paymentSlice'
 import { downloadSingleReceipt, downloadAllReceipts } from '../../../utils/receiptUtils'
 
 
@@ -21,14 +21,17 @@ const PaymentHistory: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'Pending' | 'Completed' | 'Failed'>('all')
   const [selectedPayment, setSelectedPayment] = useState<any>(null)
   const [showModal, setShowModal] = useState(false)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   const dispatch = useDispatch<AppDispatch>()
   const { payments, loading } = useSelector((state: RootState) => state.payments)
 
   useEffect(() => {
-    dispatch(fetchPayments())
-  }, [dispatch])
-
+     if (user?.user_id) {
+       dispatch(fetchPaymentsByUserId(user.user_id))
+     }
+   }, [dispatch, user?.user_id])
+ 
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || payment.payment_status === statusFilter
