@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'http://localhost:8088';
+// export const API_BASE_URL = 'http://localhost:8088';
 // export const API_BASE_URL = 'https://ef045521384b.ngrok-free.app';
-// export const API_BASE_URL = 'https://event-ticketing-system-backend.onrender.com';
+export const API_BASE_URL = 'https://event-ticketing-system-backend.onrender.com';
 // export const neon_d=https://car-rental-backend-ps2q.onrender.com
 
 const api = axios.create({
@@ -87,7 +87,7 @@ export const supportTicketsAPI = {
 //     api.post('/api/mpesa/stk-push', data),
 // };
 
-const MPESA_BASE_URL = 'https://42a1c80dcea6.ngrok-free.app';
+const MPESA_BASE_URL = 'https://de4430ccc7d2.ngrok-free.app';
 
 export const mpesaAPI = {
   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>

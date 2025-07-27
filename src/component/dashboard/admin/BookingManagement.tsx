@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react' 
 import { useDispatch, useSelector } from 'react-redux'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import {
@@ -6,6 +6,7 @@ import {
   deleteBooking,
   updateBooking,
 } from '../../../store/slices/bookingSlice'
+import { Search, Users, CheckCircle, Clock } from 'lucide-react' // Icons for stats and search
 
 const BookingManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -19,6 +20,8 @@ const BookingManagement = () => {
     total_amount: '',
     booking_status: '',
   })
+
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     dispatch(fetchBookings())
@@ -63,6 +66,23 @@ const BookingManagement = () => {
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString()
 
+  // Filter bookings based on search term (user_id, event_id or status)
+  const filteredBookings = bookings.filter((booking) => {
+    const lowerSearch = searchTerm.toLowerCase()
+    return (
+      booking.user_id.toString().includes(lowerSearch) ||
+      booking.event_id.toString().includes(lowerSearch) ||
+      booking.booking_status.toLowerCase().includes(lowerSearch)
+    )
+  })
+
+  // Stats calculation
+  const stats = {
+    total: bookings.length,
+    confirmed: bookings.filter(b => b.booking_status === 'Confirmed').length,
+    pending: bookings.filter(b => b.booking_status === 'Pending').length,
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -72,9 +92,46 @@ const BookingManagement = () => {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Booking Management</h2>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-base-content/70">Total Bookings</p>
+            <p className="text-xl font-bold">{stats.total}</p>
+          </div>
+          <Users className="h-8 w-8 text-blue-600" />
+        </div>
+        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-base-content/70">Confirmed</p>
+            <p className="text-xl font-bold">{stats.confirmed}</p>
+          </div>
+          <CheckCircle className="h-8 w-8 text-green-600" />
+        </div>
+        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-base-content/70">Pending</p>
+            <p className="text-xl font-bold">{stats.pending}</p>
+          </div>
+          <Clock className="h-8 w-8 text-yellow-600" />
+        </div>
+      </div>
+
+      {/* Search Input */}
+      <div className="relative mb-4 max-w-sm">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
+        <input
+          type="text"
+          placeholder="Search by User ID, Event ID, or Status"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="input input-bordered pl-10 w-full"
+        />
       </div>
 
       {error && (
@@ -98,7 +155,13 @@ const BookingManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((booking) =>
+            {filteredBookings.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center py-8 text-base-content/60">
+                  No bookings found
+                </td>
+              </tr>
+            ) : filteredBookings.map((booking) =>
               editID === booking.booking_id ? (
                 <tr key={booking.booking_id}>
                   <td>{booking.booking_id}</td>

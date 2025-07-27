@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { XCircle, AlertCircle, CheckCircle } from 'lucide-react'
 import { mpesaAPI, paymentsAPI } from '../../../services/api'
+import { withRetry } from '../../../utils/apiRetry'
 
 interface MpesaPaymentModalProps {
   amount: number
@@ -80,61 +81,136 @@ export const MpesaPaymentModal: React.FC<MpesaPaymentModalProps> = ({
     }
   }
 
-  const pollPaymentStatus = async (paymentId: number) => {
-    let attempts = 0
-    const maxAttempts = 12 // Poll for 2 minutes
+  // const pollPaymentStatus = async (paymentId: number) => {
+  //   let attempts = 0
+  //   const maxAttempts = 12 // Poll for 2 minutes
     
-    const poll = async () => {
-      try {
-        attempts++
-        console.log(`Polling payment status attempt ${attempts} for payment ID: ${paymentId}`)
+  //   const poll = async () => {
+  //     try {
+  //       attempts++
+  //       console.log(`Polling payment status attempt ${attempts} for payment ID: ${paymentId}`)
         
-        const paymentStatusResp = await paymentsAPI.getById(paymentId)
-        const paymentData = paymentStatusResp.data.data || paymentStatusResp.data
-        const status = paymentData.payment_status?.toLowerCase()
+  //       const paymentStatusResp = await paymentsAPI.getById(paymentId)
+  //       const paymentData = paymentStatusResp.data.data || paymentStatusResp.data
+  //       const status = paymentData.payment_status?.toLowerCase()
         
-        console.log('Current payment status:', status)
+  //       console.log('Current payment status:', status)
         
-        // Check for success statuses
-        if (['success', 'completed'].includes(status)) {
-          setIsPolling(false)
-          setMessage({type: 'success', text: 'Payment successful!'})
-          setTimeout(() => {
-            onSuccess()
-            onClose()
-          }, 2000)
-          return
+  //       // Check for success statuses
+  //       if (['success', 'completed'].includes(status)) {
+  //         setIsPolling(false)
+  //         setMessage({type: 'success', text: 'Payment successful!'})
+  //         setTimeout(() => {
+  //           onSuccess()
+  //           onClose()
+  //         }, 2000)
+  //         return
+  //       }
+        
+  //       // Check for failure statuses
+  //       if (['failed', 'cancelled'].includes(status)) {
+  //         setIsPolling(false)
+  //         setMessage({type: 'error', text: 'Payment failed or was cancelled'})
+  //         return
+  //       }
+        
+  //       // Continue polling if still pending
+  //       if (attempts < maxAttempts && ['pending', 'processing'].includes(status)) {
+  //         setTimeout(poll, 10000)
+  //       } else if (attempts >= maxAttempts) {
+  //         setIsPolling(false)
+  //         setMessage({type: 'error', text: 'Payment status check timed out. Please check later'})
+  //       }
+        
+  //     } catch (err: any) {
+  //       console.error('Error checking payment status:', err)
+  //       attempts++
+  //       if (attempts < maxAttempts) {
+  //         setTimeout(poll, 10000)
+  //       } else {
+  //         setIsPolling(false)
+  //         setMessage({type: 'error', text: 'Error verifying payment. Please check later'})
+  //       }
+  //     }
+  //   }
+    
+  //   setTimeout(poll, 5000) // Start polling after 5 seconds
+  // }
+  const pollPaymentStatus = async (paymentId: number) => {
+  let attempts = 0
+  const maxAttempts = 12
+  
+  const poll = async () => {
+    attempts++
+    console.log(`Polling payment status attempt ${attempts} for payment ID: ${paymentId}`)
+    
+    try {
+      // Use retry mechanism for API calls
+      const paymentStatusResp = await withRetry(
+        () => paymentsAPI.getById(paymentId),
+        { maxAttempts: 2, delay: 500 }
+      )
+      
+      const paymentData = paymentStatusResp.data.data || paymentStatusResp.data
+      const status = paymentData.payment_status?.toLowerCase()
+      
+      console.log('Current payment status:', status)
+      
+      if (['success', 'completed'].includes(status)) {
+        setIsPolling(false)
+        setMessage({type: 'success', text: 'Payment successful!'})
+        setTimeout(() => {
+          onSuccess()
+          onClose()
+        }, 2000)
+        return
+      }
+      
+      if (['failed', 'cancelled', 'canceled', 'timeout', 'expired'].includes(status)) {
+        setIsPolling(false)
+        setMessage({type: 'error', text: 'Payment was cancelled or failed'})
+        
+        // Update payment status with retry
+        try {
+          await withRetry(
+            () => paymentsAPI.update(paymentId, { payment_status: 'Failed' }),
+            { maxAttempts: 2 }
+          )
+        } catch (updateError) {
+          console.error('Failed to update payment status:', updateError)
         }
+        return
+      }
+      
+      if (attempts < maxAttempts && ['pending', 'processing', 'initiated'].includes(status)) {
+        setTimeout(poll, 10000)
+      } else if (attempts >= maxAttempts) {
+        setIsPolling(false)
+        setMessage({type: 'error', text: 'Payment confirmation timed out'})
         
-        // Check for failure statuses
-        if (['failed', 'cancelled'].includes(status)) {
-          setIsPolling(false)
-          setMessage({type: 'error', text: 'Payment failed or was cancelled'})
-          return
-        }
-        
-        // Continue polling if still pending
-        if (attempts < maxAttempts && ['pending', 'processing'].includes(status)) {
-          setTimeout(poll, 10000)
-        } else if (attempts >= maxAttempts) {
-          setIsPolling(false)
-          setMessage({type: 'error', text: 'Payment status check timed out. Please check later'})
-        }
-        
-      } catch (err: any) {
-        console.error('Error checking payment status:', err)
-        attempts++
-        if (attempts < maxAttempts) {
-          setTimeout(poll, 10000)
-        } else {
-          setIsPolling(false)
-          setMessage({type: 'error', text: 'Error verifying payment. Please check later'})
+        try {
+          await withRetry(
+            () => paymentsAPI.update(paymentId, { payment_status: 'Failed' }),
+            { maxAttempts: 2 }
+          )
+        } catch (updateError) {
+          console.error('Failed to update payment status:', updateError)
         }
       }
+      
+    } catch (err: any) {
+      console.error('Error checking payment status:', err)
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 10000)
+      } else {
+        setIsPolling(false)
+        setMessage({type: 'error', text: 'Error verifying payment. Please check later'})
+      }
     }
-    
-    setTimeout(poll, 5000) // Start polling after 5 seconds
   }
+  
+  setTimeout(poll, 5000)
+}
 
   const handlePay = async () => {
     if (!phoneNumber) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Search, Users, ShieldCheck, UserCheck } from 'lucide-react'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import {
   fetchUsers,
@@ -19,9 +20,10 @@ interface UserFormData {
 
 const UserManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { users, loading, error, selectedUser } = useSelector((state: RootState) => state.users)
+  const { users, loading, selectedUser } = useSelector((state: RootState) => state.users)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState<UserFormData>({
     first_name: '',
     last_name: '',
@@ -35,17 +37,12 @@ const UserManagement = () => {
   }, [dispatch])
 
   useEffect(() => {
-    if (!isModalOpen) {
-      dispatch(clearError())
-    }
+    if (!isModalOpen) dispatch(clearError())
   }, [isModalOpen, dispatch])
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      const result = await dispatch(deleteUser(id))
-      if (deleteUser.fulfilled.match(result)) {
-        // success - Redux state already updated
-      }
+      await dispatch(deleteUser(id))
     }
   }
 
@@ -63,17 +60,13 @@ const UserManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (selectedUser) {
-      const result = await dispatch(updateUser({
+      await dispatch(updateUser({
         user_id: selectedUser.user_id,
         ...formData,
       }))
-
-      if (updateUser.fulfilled.match(result)) {
-        setIsModalOpen(false)
-        resetForm()
-      }
+      setIsModalOpen(false)
+      resetForm()
     }
   }
 
@@ -101,6 +94,17 @@ const UserManagement = () => {
     })
   }
 
+  const filteredUsers = users.filter((user) =>
+    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const userStats = {
+    total: users.length,
+    verified: users.filter(u => u.is_verified).length,
+    admins: users.filter(u => u.role === 'admin').length,
+  }
+
   if (loading && users.length === 0) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -110,25 +114,43 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">User Management</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">User Management</h2>
       </div>
 
-      {error && (
-        <div className="alert alert-error mb-4">
-          <span>{error}</span>
-          <button
-            onClick={() => dispatch(clearError())}
-            className="btn btn-sm btn-ghost"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {/* Analytics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+        {[
+          { label: 'Total Users', value: userStats.total, icon: Users, color: 'text-blue-600' },
+          { label: 'Verified Users', value: userStats.verified, icon: UserCheck, color: 'text-green-600' },
+          { label: 'Admins', value: userStats.admins, icon: ShieldCheck, color: 'text-purple-600' },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-base-content/70">{label}</p>
+              <p className="text-xl font-bold">{value}</p>
+            </div>
+            <Icon className={`h-8 w-8 ${color}`} />
+          </div>
+        ))}
+      </div>
 
-      <div className="overflow-x-auto">
-        <table className="table table-zebra w-full">
+      {/* Search */}
+      <div className="relative w-full sm:w-1/2 mt-4">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="input input-bordered pl-10 w-full"
+        />
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto mt-6">
+        <table className="table table-zebra w-full bg-base-100 rounded-lg shadow">
           <thead>
             <tr>
               <th>ID</th>
@@ -140,111 +162,102 @@ const UserManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr key={user.user_id}>
-                <td>{user.user_id}</td>
-                <td>{user.first_name} {user.last_name}</td>
-                <td>{user.email}</td>
-                <td>
-                  <div className="badge badge-outline">{user.role}</div>
-                </td>
-                <td>
-                  <div className={`badge ${user.is_verified ? 'badge-success' : 'badge-warning'}`}>
-                    {user.is_verified ? 'Verified' : 'Pending'}
-                  </div>
-                </td>
-                <td>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="btn btn-sm btn-primary min-h-8 h-8"
-                      disabled={loading}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user.user_id)}
-                      className="btn btn-sm btn-error min-h-8 h-8"
-                      disabled={loading}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-6">No users found</td>
               </tr>
-            ))}
+            ) : (
+              filteredUsers.map((user) => (
+                <tr key={user.user_id}>
+                  <td>{user.user_id}</td>
+                  <td>{user.first_name} {user.last_name}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <div className="badge badge-outline">{user.role}</div>
+                  </td>
+                  <td>
+                    <div className={`badge ${user.is_verified ? 'badge-success' : 'badge-warning'}`}>
+                      {user.is_verified ? 'Verified' : 'Pending'}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="btn btn-sm btn-info"
+                        disabled={loading}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user.user_id)}
+                        className="btn btn-sm btn-error"
+                        disabled={loading}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-2xl border-2 border-gray-300 w-full max-w-md mx-4 p-6">
-            <h3 className="font-bold text-lg mb-4 text-gray-900">
-              Edit User
-            </h3>
-
+          <div className="bg-white dark:bg-base-100 rounded-lg shadow-2xl border w-full max-w-md mx-4 p-6">
+            <h3 className="font-bold text-lg mb-4">Edit User</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="form-control">
-                <label className="block mb-1">
-                  <span className="text-sm font-medium text-gray-700">First Name</span>
-                </label>
+                <label className="label-text">First Name</label>
                 <input
                   type="text"
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleInputChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered"
                   required
                 />
               </div>
-
               <div className="form-control">
-                <label className="block mb-1">
-                  <span className="text-sm font-medium text-gray-700">Last Name</span>
-                </label>
+                <label className="label-text">Last Name</label>
                 <input
                   type="text"
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleInputChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered"
                   required
                 />
               </div>
-
               <div className="form-control">
-                <label className="block mb-1">
-                  <span className="text-sm font-medium text-gray-700">Email</span>
-                </label>
+                <label className="label-text">Email</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered"
                   required
                 />
               </div>
-
               <div className="form-control">
-                <label className="block mb-1">
-                  <span className="text-sm font-medium text-gray-700">Role</span>
-                </label>
+                <label className="label-text">Role</label>
                 <select
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className="select select-bordered w-full"
-                  required
+                  className="select select-bordered"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
-
               <div className="form-control">
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     name="is_verified"
@@ -252,23 +265,12 @@ const UserManagement = () => {
                     onChange={handleInputChange}
                     className="checkbox"
                   />
-                  <span className="text-sm font-medium text-gray-700">Verified</span>
+                  <span>Verified</span>
                 </label>
               </div>
-
               <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="btn btn-outline w-1/2"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary w-1/2"
-                  disabled={loading}
-                >
+                <button type="button" onClick={closeModal} className="btn btn-ghost w-1/2">Cancel</button>
+                <button type="submit" className="btn btn-primary w-1/2" disabled={loading}>
                   {loading ? 'Updating...' : 'Update'}
                 </button>
               </div>

@@ -16,7 +16,7 @@ import { fetchPayments, updatePayment } from '../../../store/slices/paymentSlice
 interface Payment {
   payment_id: number
   booking_id: number
-  amount: number
+  amount: number | string
   payment_status: string
   payment_date: string
   payment_method?: string
@@ -43,10 +43,10 @@ const PaymentManagement: React.FC = () => {
     return matchesSearch && matchesStatus
   })
 
-  // Calculate stats
+  // Calculate stats with safe number conversion and formatting
   const totalRevenue = payments
     .filter(p => p.payment_status === 'Completed')
-    .reduce((sum, payment) => sum + payment.amount, 0)
+    .reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0)
 
   const pendingCount = payments.filter(p => p.payment_status === 'Pending').length
   const completedCount = payments.filter(p => p.payment_status === 'Completed').length
@@ -104,7 +104,9 @@ const PaymentManagement: React.FC = () => {
             <DollarSign className="h-8 w-8 text-green-600" />
             <div className="ml-3">
               <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-600">
+                KES{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
           </div>
         </div>
@@ -183,7 +185,7 @@ const PaymentManagement: React.FC = () => {
                   <div className="text-sm text-gray-900">Booking #{payment.booking_id}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm font-bold text-gray-900">${payment.amount}</div>
+                  <div className="text-sm font-bold text-gray-900">${Number(payment.amount).toFixed(2)}</div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-gray-600">{payment.payment_method || 'Card'}</div>
@@ -217,7 +219,7 @@ const PaymentManagement: React.FC = () => {
             ))}
           </tbody>
         </table>
-        
+
         {filteredPayments.length === 0 && (
           <div className="text-center py-12 text-gray-500">
             No payments found matching your criteria.
@@ -250,7 +252,7 @@ const PaymentManagement: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-medium text-lg">${selectedPayment.amount}</span>
+                <span className="font-medium text-lg">${Number(selectedPayment.amount).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Method:</span>

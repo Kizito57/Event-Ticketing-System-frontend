@@ -4,6 +4,8 @@ import { type AppDispatch, type RootState } from '../../../store/store'
 import { fetchUserBookings, deleteBooking, updateBookingStatus } from '../../../store/slices/bookingSlice'
 import { CreditCard, Smartphone, Building, Star, XCircle } from 'lucide-react'
 import { MpesaPaymentModal } from './MpesaPayment'
+import { paymentsAPI } from '../../../services/api'
+import { fetchEvents, updateEvent } from '../../../store/slices/eventSlice'
 
 interface PaymentMethod {
   id: number
@@ -117,6 +119,7 @@ const MyBookings = () => {
   const { user } = useSelector((state: RootState) => state.auth)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
+  const { events } = useSelector((state: RootState) => state.events)
 
   useEffect(() => {
     if (user?.user_id) {
@@ -135,21 +138,78 @@ const MyBookings = () => {
     setShowPaymentModal(true)
   }
 
-  const handlePaymentSuccess = async (bookingId: number) => {
-    try {
-      await dispatch(updateBookingStatus({ bookingId, status: 'Confirmed' }))
+  // const handlePaymentSuccess = async (bookingId: number) => {
+  //   try {
+  //     await dispatch(updateBookingStatus({ bookingId, status: 'Confirmed' }))
       
-      setShowPaymentModal(false)
-      setSelectedBooking(null)
+  //     setShowPaymentModal(false)
+  //     setSelectedBooking(null)
       
-      if (user?.user_id) {
-        dispatch(fetchUserBookings(user.user_id))
+  //     if (user?.user_id) {
+  //       dispatch(fetchUserBookings(user.user_id))
+  //     }
+      
+  //   } catch (error) {
+  //     console.error('Error updating booking status:', error)
+  //   }
+  // }
+
+  // Only the handlePaymentSuccess function needs to be updated in MyBookings.tsx
+
+const handlePaymentSuccess = async (bookingId: number) => {
+  try {
+    // First verify the payment is actually completed
+    const payments = await paymentsAPI.getAll()
+    const relatedPayment = payments.data.find((p: any) => 
+      p.booking_id === bookingId && 
+      ['success', 'completed'].includes(p.payment_status?.toLowerCase())
+    )
+    
+    if (!relatedPayment) {
+      console.error('No successful payment found for booking:', bookingId)
+      return
+    }
+
+      
+    // Find the booking to get quantity and event_id
+    const booking = bookings.find(b => b.booking_id === bookingId)
+    if (!booking) {
+      console.error('Booking not found:', bookingId)
+      return
+    }
+    
+    // Only update booking status if payment is confirmed successful
+    await dispatch(updateBookingStatus({ bookingId, status: 'Confirmed' }))
+
+    // Update event ticket counts
+    const eventToUpdate = events.find(e => e.event_id === booking.event_id)
+    if (eventToUpdate) {
+      const updatedEventData = {
+        ...eventToUpdate,
+        tickets_sold: (eventToUpdate.tickets_sold || 0) + booking.quantity,
+        tickets_total: eventToUpdate.tickets_total - booking.quantity
       }
       
-    } catch (error) {
-      console.error('Error updating booking status:', error)
+      await dispatch(updateEvent({ 
+        id: booking.event_id, 
+        eventData: updatedEventData 
+      }))
     }
+    
+    
+    setShowPaymentModal(false)
+    setSelectedBooking(null)
+    
+    // Refresh both bookings and payment data
+    if (user?.user_id) {
+      dispatch(fetchUserBookings(user.user_id))
+      dispatch(fetchEvents()) 
+    }
+    
+  } catch (error) {
+    console.error('Error updating booking status:', error)
   }
+}
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

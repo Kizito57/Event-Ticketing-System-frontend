@@ -1,3 +1,4 @@
+// Login.tsx
 import { useEffect, useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -35,7 +36,6 @@ const Login = () => {
 
   const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
     try {
-      // Use unwrap() to get the resolved payload directly
       await dispatch(loginUser(data)).unwrap()
       toast.success('Welcome back! Login successful!')
     } catch {
@@ -56,17 +56,13 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center px-4 py-8">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-200 rounded-full opacity-20 blur-3xl"></div>
       </div>
 
       <div className="w-full max-w-md relative">
-        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm border border-gray-100">
-          
-          {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
               <FaTicketAlt className="text-emerald-600 text-2xl" />
@@ -75,18 +71,17 @@ const Login = () => {
             <p className="text-gray-600">Sign in to access your Crystal Events account</p>
           </div>
 
-          {/* Error Alert */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+            <div
+              className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2"
+              data-test="login-error"
+            >
               <FaShieldAlt className="text-red-500" />
               <span className="text-sm">{error}</span>
             </div>
           )}
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            
-            {/* Email Field */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" data-test="login-form">
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium text-gray-700">Email Address</span>
@@ -98,8 +93,9 @@ const Login = () => {
                 <input
                   type="email"
                   {...register('email')}
-                  className="input input-bordered w-full pl-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="input input-bordered w-full pl-10"
                   placeholder="Enter your email"
+                  data-test="login-email-input"
                 />
               </div>
               {errors.email && (
@@ -110,7 +106,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium text-gray-700">Password</span>
@@ -122,13 +117,15 @@ const Login = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
-                  className="input input-bordered w-full pl-10 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  className="input input-bordered w-full pl-10 pr-10"
                   placeholder="Enter your password"
+                  data-test="login-password-input"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  data-test="toggle-password-visibility"
                 >
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
@@ -141,22 +138,27 @@ const Login = () => {
               )}
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="checkbox checkbox-sm checkbox-primary" />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
-              <a href="/forgot-password" className="text-sm text-green-600 hover:text-emerald-700 transition-colors">
+              <a
+                href="/forgot-password"
+                className="text-sm text-green-600 hover:text-emerald-700"
+                data-test="forgot-password-link"
+              >
                 Forgot password?
               </a>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              className={`btn w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white border-0 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-[1.02] ${loading ? 'loading' : ''}`}
+              className={`btn w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white border-0 py-3 rounded-lg font-medium transition-all duration-200 ${
+                loading ? 'loading' : ''
+              }`}
               disabled={loading}
+              data-test="login-submit-button"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -172,16 +174,15 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Footer Links */}
           <div className="text-center mt-8 space-y-3">
             <p className="text-gray-600">
               New to Crystal Events?{' '}
-              <a href="/register" className="text-green-600 hover:text-emerald-700 font-medium transition-colors">
+              <a href="/register" className="text-green-600 hover:text-emerald-700 font-medium" data-test="register-link">
                 Create an account
               </a>
             </p>
             <p>
-              <a href="/" className="text-gray-500 hover:text-gray-700 text-sm transition-colors">
+              <a href="/" className="text-gray-500 hover:text-gray-700 text-sm" data-test="back-home-link">
                 ← Back to Home
               </a>
             </p>

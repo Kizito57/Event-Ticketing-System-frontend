@@ -43,7 +43,7 @@ const Verification = () => {
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-100 flex items-center justify-center p-4"
-      data-testid="verification-page"
+      data-test="verification-page"
     >
       <div className="w-full max-w-md">
         {/* Header */}
@@ -63,19 +63,19 @@ const Verification = () => {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2" data-testid="verification-heading">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2" data-test="verification-heading">
             Check Your Email
           </h1>
-          <p className="text-gray-600" data-testid="verification-subheading">
+          <p className="text-gray-600" data-test="verification-subheading">
             We've sent a verification code to your inbox
           </p>
         </div>
 
         {/* Card */}
-        <div className="card bg-white/80 backdrop-blur-sm shadow-xl border border-white/20" data-testid="verification-card">
+        <div className="card bg-white/80 backdrop-blur-sm shadow-xl border border-white/20" data-test="verification-card">
           <div className="card-body p-8">
             {/* Email Info */}
-            <div className="alert alert-info mb-6 bg-blue-50 border-blue-200" data-testid="email-info-box">
+            <div className="alert alert-info mb-6 bg-blue-50 border-blue-200" data-test="email-info-box">
               <svg
                 className="stroke-current shrink-0 h-6 w-6 text-blue-600"
                 fill="none"
@@ -90,14 +90,14 @@ const Verification = () => {
               </svg>
               <div className="text-sm">
                 <p className="font-medium text-blue-800">Verification code sent!</p>
-                <p className="text-blue-700" data-testid="email-display">
+                <p className="text-blue-700" data-test="email-display">
                   Check your inbox at <span className="font-semibold">{registrationEmail}</span>
                 </p>
               </div>
             </div>
 
             {error && (
-              <div className="alert alert-error mb-6" data-testid="error-box">
+              <div className="alert alert-error mb-6" data-test="error-box">
                 <svg
                   className="stroke-current shrink-0 h-6 w-6"
                   fill="none"
@@ -110,11 +110,11 @@ const Verification = () => {
                     d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className="text-sm" data-testid="error-message">{error}</span>
+                <span className="text-sm" data-test="error-message">{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6" data-testid="verification-form">
+            <form onSubmit={handleSubmit} className="space-y-6" data-test="verification-form">
               {/* Verification Code Input */}
               <div className="form-control">
                 <label className="label">
@@ -128,7 +128,7 @@ const Verification = () => {
                   placeholder="000000"
                   maxLength={6}
                   required
-                  data-testid="verification-input"
+                  data-test="verification-code-input"
                 />
                 <label className="label">
                   <span className="label-text-alt text-gray-500">
@@ -144,10 +144,10 @@ const Verification = () => {
                   loading ? 'loading' : ''
                 }`}
                 disabled={loading || verificationCode.length !== 6}
-                data-testid="submit-button"
+                data-test="submit-verification-button"
               >
                 {loading ? (
-                  <span className="loading loading-spinner loading-sm" data-testid="loading-spinner"></span>
+                  <span className="loading loading-spinner loading-sm" data-test="loading-spinner"></span>
                 ) : (
                   <>
                     <svg
@@ -170,7 +170,7 @@ const Verification = () => {
             </form>
 
             {/* Help Text */}
-            <div className="mt-6 text-center" data-testid="help-section">
+            <div className="mt-6 text-center" data-test="help-section">
               <div className="text-sm text-gray-600 space-y-2">
                 <p>Didn't receive the code?</p>
                 <div className="flex flex-col space-y-1">
@@ -189,7 +189,7 @@ const Verification = () => {
               <button
                 onClick={() => navigate('/register')}
                 className="btn btn-ghost text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition-colors duration-200"
-                data-testid="back-to-register"
+                data-test="back-to-register-button"
               >
                 <svg
                   className="w-4 h-4 mr-2"
@@ -206,7 +206,7 @@ const Verification = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6 text-sm text-gray-500" data-testid="footer-support-text">
+        <div className="text-center mt-6 text-sm text-gray-500" data-test="footer-support-text">
           Having trouble? Contact our support team for assistance
         </div>
       </div>

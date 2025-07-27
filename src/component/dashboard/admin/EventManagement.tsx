@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import { fetchEvents, createEvent, updateEvent, deleteEvent } from '../../../store/slices/eventSlice'
-import { API_BASE_URL } from '../../../services/api'; // adjust path as needed
-  
+import { API_BASE_URL } from '../../../services/api'
+import { Search, Calendar, Users } from 'lucide-react' // Removed Ticket icon import
 
 const EventManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -13,6 +13,9 @@ const EventManagement = () => {
   const [editingEvent, setEditingEvent] = useState<any>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState('')
+  // Removed 'past' filter status, only 'all' and 'upcoming' now
+  const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming'>('all')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -40,6 +43,24 @@ const EventManagement = () => {
     }
   }
 
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      venue_id: 1,
+      category: '',
+      date: '',
+      time: '',
+      ticket_price: '',
+      tickets_total: '',
+    })
+    setImagePreview('')
+    setImageFile(null)
+    setShowAddForm(false)
+    setShowEditForm(false)
+    setEditingEvent(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -51,9 +72,9 @@ const EventManagement = () => {
         const uploadFormData = new FormData()
         uploadFormData.append('file', imageFile)
 
-        const uploadResponse = await fetch('${API_BASE_URL}/api/upload', {
+        const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {
           method: 'POST',
-          body: uploadFormData
+          body: uploadFormData,
         })
 
         if (!uploadResponse.ok) throw new Error('Image upload failed')
@@ -66,15 +87,15 @@ const EventManagement = () => {
         ...formData,
         ticket_price: parseFloat(formData.ticket_price),
         tickets_total: parseInt(formData.tickets_total),
-        image_url: imageUrl
+        image_url: imageUrl,
       }
 
       if (editingEvent) {
-        await dispatch(updateEvent({ id: editingEvent.event_id, eventData }))
+        await dispatch(updateEvent({ id: editingEvent.event_id, eventData })).unwrap()
         setShowEditForm(false)
         setEditingEvent(null)
       } else {
-        await dispatch(createEvent(eventData))
+        await dispatch(createEvent(eventData)).unwrap()
         setShowAddForm(false)
       }
 
@@ -100,28 +121,14 @@ const EventManagement = () => {
     setShowEditForm(true)
   }
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
-      dispatch(deleteEvent(id))
+      try {
+        await dispatch(deleteEvent(id)).unwrap()
+      } catch {
+        // handle error if needed
+      }
     }
-  }
-
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      venue_id: 1,
-      category: '',
-      date: '',
-      time: '',
-      ticket_price: '',
-      tickets_total: '',
-    })
-    setImagePreview('')
-    setImageFile(null)
-    setShowAddForm(false)
-    setShowEditForm(false)
-    setEditingEvent(null)
   }
 
   if (loading) {
@@ -135,31 +142,89 @@ const EventManagement = () => {
   // Ensure events is always an array
   const eventsArray = Array.isArray(events) ? events : []
 
+  // Filter events by search and status (only 'all' and 'upcoming')
+  const filteredEvents = eventsArray.filter((event) => {
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchLower) ||
+      event.category.toLowerCase().includes(searchLower)
+
+    const today = new Date()
+    const eventDate = new Date(event.date)
+
+    const matchesStatus =
+      filterStatus === 'all' || (filterStatus === 'upcoming' && eventDate >= today)
+
+    return matchesSearch && matchesStatus
+  })
+
+  // Stats without Total Tickets
+  const eventStats = {
+    total: eventsArray.length,
+    ticketsSold: eventsArray.reduce((sum, e) => sum + (e.tickets_sold || 0), 0),
+  }
+
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-6">
+    <div className="w-full space-y-6">
+      {/* Header + Add Button */}
+      <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Event Management</h2>
-        <button 
-          onClick={() => setShowAddForm(true)}
-          className="btn btn-primary"
-        >
+        <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
           Add New Event
         </button>
       </div>
 
-      {error && (
-        <div className="alert alert-error mb-4">
-          <span>{error}</span>
-        </div>
-      )}
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[
+          { label: 'Total Events', value: eventStats.total, icon: Calendar, color: 'text-blue-600' },
+          { label: 'Tickets Sold', value: eventStats.ticketsSold.toLocaleString(), icon: Users, color: 'text-purple-600' },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div
+            key={label}
+            className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center"
+          >
+            <div>
+              <p className="text-sm text-base-content/70">{label}</p>
+              <p className="text-xl font-bold">{value}</p>
+            </div>
+            <Icon className={`h-8 w-8 ${color}`} />
+          </div>
+        ))}
+      </div>
 
+      {/* Filters and Search */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="join">
+          {(['all', 'upcoming'] as const).map((status) => (
+            <button
+              key={status}
+              className={`btn join-item ${filterStatus === status ? 'btn-active' : ''}`}
+              onClick={() => setFilterStatus(status)}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="relative w-full sm:w-1/2">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
+          <input
+            type="text"
+            placeholder="Search events..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input input-bordered pl-10 w-full"
+          />
+        </div>
+      </div>
+
+      {/* Add/Edit Form */}
       {(showAddForm || showEditForm) && (
         <div className="card bg-base-100 shadow-lg mb-6 border border-base-300">
           <div className="card-body">
-            <h3 className="card-title">
-              {editingEvent ? 'Edit Event' : 'Add New Event'}
-            </h3>
+            <h3 className="card-title">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
             <form onSubmit={handleSubmit}>
+              {/* ... your existing form fields (unchanged) ... */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Column - Form Fields */}
                 <div className="space-y-4">
@@ -170,22 +235,24 @@ const EventManagement = () => {
                     <input
                       type="text"
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                       className="input input-bordered"
                       required
                     />
                   </div>
+
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text">Description</span>
                     </label>
                     <textarea
                       value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       className="textarea textarea-bordered"
                       rows={3}
                     />
                   </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="form-control">
                       <label className="label">
@@ -194,7 +261,7 @@ const EventManagement = () => {
                       <input
                         type="date"
                         value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                         className="input input-bordered"
                         required
                       />
@@ -206,12 +273,13 @@ const EventManagement = () => {
                       <input
                         type="time"
                         value={formData.time}
-                        onChange={(e) => setFormData({...formData, time: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                         className="input input-bordered"
                         required
                       />
                     </div>
                   </div>
+
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text">Category</span>
@@ -219,11 +287,12 @@ const EventManagement = () => {
                     <input
                       type="text"
                       value={formData.category}
-                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="input input-bordered"
                       required
                     />
                   </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="form-control">
                       <label className="label">
@@ -233,7 +302,7 @@ const EventManagement = () => {
                         type="number"
                         step="0.01"
                         value={formData.ticket_price}
-                        onChange={(e) => setFormData({...formData, ticket_price: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, ticket_price: e.target.value })}
                         className="input input-bordered"
                         required
                       />
@@ -245,7 +314,7 @@ const EventManagement = () => {
                       <input
                         type="number"
                         value={formData.tickets_total}
-                        onChange={(e) => setFormData({...formData, tickets_total: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, tickets_total: e.target.value })}
                         className="input input-bordered"
                         required
                       />
@@ -266,7 +335,7 @@ const EventManagement = () => {
                       className="file-input file-input-bordered w-full"
                     />
                   </div>
-                  {imagePreview && (
+                  {imagePreview ? (
                     <div className="w-full">
                       <label className="label">
                         <span className="label-text">Preview</span>
@@ -279,12 +348,21 @@ const EventManagement = () => {
                         />
                       </div>
                     </div>
-                  )}
-                  {!imagePreview && (
+                  ) : (
                     <div className="w-full h-48 border-2 border-dashed border-base-300 rounded-lg flex items-center justify-center text-base-content/50">
                       <div className="text-center">
-                        <svg className="mx-auto h-12 w-12 text-base-content/30" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <svg
+                          className="mx-auto h-12 w-12 text-base-content/30"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 48 48"
+                        >
+                          <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                         <p className="mt-2 text-sm">Upload event image</p>
                       </div>
@@ -294,11 +372,7 @@ const EventManagement = () => {
               </div>
 
               <div className="card-actions justify-end mt-6">
-                <button 
-                  type="button"
-                  onClick={resetForm}
-                  className="btn btn-ghost"
-                >
+                <button type="button" onClick={resetForm} className="btn btn-ghost">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
@@ -310,6 +384,7 @@ const EventManagement = () => {
         </div>
       )}
 
+      {/* Events Table */}
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full bg-base-100 shadow-lg rounded-lg">
           <thead>
@@ -327,28 +402,42 @@ const EventManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {eventsArray.length === 0 ? (
+            {filteredEvents.length === 0 ? (
               <tr>
                 <td colSpan={10} className="text-center py-8 text-base-content/60">
                   No events found
                 </td>
               </tr>
             ) : (
-              eventsArray.map((event) => (
+              filteredEvents.map((event) => (
                 <tr key={event.event_id}>
                   <td>
                     <div className="avatar">
-                      <div className="w-16 h-12 rounded">
+                      <div className="w-16 h-12 rounded overflow-hidden">
                         {event.image_url ? (
-                          <img 
-                            src={event.image_url.startsWith('http') ? event.image_url : `${API_BASE_URL}${event.image_url}`}
+                          <img
+                            src={
+                              event.image_url.startsWith('http')
+                                ? event.image_url
+                                : `${API_BASE_URL}${event.image_url}`
+                            }
                             alt={event.title}
                             className="w-full h-full object-cover"
                           />
                         ) : (
                           <div className="w-full h-full bg-base-300 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <svg
+                              className="w-6 h-6 text-base-content/30"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
                             </svg>
                           </div>
                         )}
@@ -365,13 +454,13 @@ const EventManagement = () => {
                   <td>{event.tickets_sold || 0}</td>
                   <td>
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => handleEdit(event)}
                         className="btn btn-sm btn-info min-h-8 h-8"
                       >
                         Edit
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(event.event_id)}
                         className="btn btn-sm btn-error min-h-8 h-8"
                       >

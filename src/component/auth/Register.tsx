@@ -34,7 +34,6 @@ const Register = () => {
     }
 
     const { confirmPassword, ...registrationData } = formData
-
     const result = await dispatch(registerUser(registrationData))
 
     if (registerUser.fulfilled.match(result)) {
@@ -46,6 +45,7 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-green-600 rounded-2xl mb-4 shadow-lg">
@@ -69,9 +69,10 @@ const Register = () => {
 
         {/* Card */}
         <div className="card bg-white/80 backdrop-blur-sm shadow-xl border border-white/20">
-          <div className="card-body p-8">
+          <div className="card-body p-8" data-test="register-form">
+
             {error && (
-              <div className="alert alert-error mb-6">
+              <div className="alert alert-error mb-6" data-test="register-error">
                 <svg
                   className="stroke-current shrink-0 h-6 w-6"
                   fill="none"
@@ -89,6 +90,7 @@ const Register = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+
               {/* Name Fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="form-control">
@@ -103,6 +105,7 @@ const Register = () => {
                     className="input input-bordered bg-white/50 border-gray-200 focus:border-emerald-400 focus:bg-white transition-all duration-200"
                     placeholder="John"
                     required
+                    data-test="register-first-name"
                   />
                 </div>
 
@@ -118,6 +121,7 @@ const Register = () => {
                     className="input input-bordered bg-white/50 border-gray-200 focus:border-emerald-400 focus:bg-white transition-all duration-200"
                     placeholder="Doe"
                     required
+                    data-test="register-last-name"
                   />
                 </div>
               </div>
@@ -135,10 +139,11 @@ const Register = () => {
                   className="input input-bordered bg-white/50 border-gray-200 focus:border-emerald-400 focus:bg-white transition-all duration-200"
                   placeholder="john@gmail.com"
                   required
+                  data-test="register-email"
                 />
               </div>
 
-              {/* Password Fields */}
+              {/* Password Field */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text text-gray-700 font-medium">Password</span>
@@ -151,9 +156,11 @@ const Register = () => {
                   className="input input-bordered bg-white/50 border-gray-200 focus:border-emerald-400 focus:bg-white transition-all duration-200"
                   placeholder="••••••••"
                   required
+                  data-test="register-password"
                 />
               </div>
 
+              {/* Confirm Password Field */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text text-gray-700 font-medium">Confirm Password</span>
@@ -166,6 +173,7 @@ const Register = () => {
                   className="input input-bordered bg-white/50 border-gray-200 focus:border-blue-400 focus:bg-white transition-all duration-200"
                   placeholder="••••••••"
                   required
+                  data-test="register-confirm-password"
                 />
               </div>
 
@@ -176,6 +184,7 @@ const Register = () => {
                   loading ? 'loading' : ''
                 }`}
                 disabled={loading}
+                data-test="register-submit-button"
               >
                 {loading ? (
                   <span className="loading loading-spinner loading-sm"></span>
@@ -208,6 +217,7 @@ const Register = () => {
               <Link
                 to="/login"
                 className="btn btn-ghost text-green-600 hover:text-yellow-700 hover:bg-emerald-50 transition-colors duration-200"
+                data-test="register-login-link"
               >
                 Sign In Instead
               </Link>
@@ -216,7 +226,7 @@ const Register = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6 text-sm text-gray-500">
+        <div className="text-center mt-6 text-sm text-gray-500" data-test="register-footer">
           By creating an account, you agree to our Terms of Service and Privacy Policy
         </div>
       </div>
