@@ -1,78 +1,86 @@
-import story1 from '../../assets/images/story1.jpg';
-import story2 from '../../assets/images/story2.jpg';
+import story1 from '../../assets/images/story1.jpg'
+import story2 from '../../assets/images/story2.jpg'
 
 type Testimonial = {
-    id: number;
-    name: string;
-    role: string;
-    image: string;
-    content: string;
-    rating: number;
-};
+  id: number
+  name: string
+  role: string
+  image: string
+  content: string
+  rating: number
+}
 
 export const testimonialsData: Testimonial[] = [
-    {
-        id: 1,
-        name: 'Sarah Mwangi',
-        role: 'Business Traveler',
-        image: story2,
-        content: 'RentEasy made my business trip seamless! The car was spotless, fuel-efficient, and the pickup process was incredibly quick. Professional service from start to finish.',
-        rating: 5
-    },
-    {
-        id: 2,
-        name: 'Mike Kimani',
-        role: 'Weekend Explorer',
-        image: story1,
-        content: 'Perfect for my weekend getaway! Great selection of vehicles and the prices are unbeatable. The SUV handled mountain roads like a dream. Will definitely rent again.',
-        rating: 5
-    },
-    {
-        id: 3,
-        name: 'Lisa Wanjenga',
-        role: 'Family Vacation',
-        image: story2,
-        content: 'The 7-seater van was perfect for our family road trip across three states. Spacious, comfortable, and excellent customer service throughout our journey.',
-        rating: 5
-    },
-    {
-        id: 4,
-        name: 'James Kimani',
-        role: 'Corporate Client',
-        image: story1,
-        content: 'Reliable service for all our corporate transportation needs. The booking system is user-friendly, cars are always pristine, and billing is transparent.',
-        rating: 5
-    },
-    {
-        id: 5,
-        name: 'Emma Njeri',
-        role: 'City Explorer',
-        image: story2,
-        content: 'Exploring downtown was made easy with their compact hybrid. Great fuel economy, easy parking everywhere, and the GPS system was spot-on!',
-        rating: 4
-    },
-    {
-        id: 6,
-        name: 'Alex Thuranira',
-        role: 'Adventure Seeker',
-        image: story1,
-        content: 'The 4WD pickup truck handled rocky terrain and steep mountain roads perfectly. Great for camping trips and outdoor adventures. Highly recommend!',
-        rating: 5
-    },
-    {
-        id: 7,
-        name: 'Maria Garcia',
-        role: 'Airport Shuttle',
-        image: story2,
-        content: 'Needed a reliable ride from the airport at 3 AM. The car was ready as promised, clean, and got me home safely. Excellent late-night service.',
-        rating: 5
-    },
-    {
-        id: 8,
-        name: 'David Park',
-        role: 'Long Distance Driver',
-        image: story1,
-        content: 'Drove 1,200 miles for a cross-country move. The luxury sedan was comfortable, reliable, and made the long journey enjoyable. Great value for money.',
-        rating: 4
-    },
-];
+  {
+    id: 1,
+    name: 'Sarah Mwangi',
+    role: 'Event Organizer',
+    image: story2,
+    content:
+      'The team handled our product launch with such professionalism. From setup to guest coordination, everything was smooth and impressive. Highly recommended!',
+    rating: 5
+  },
+  {
+    id: 2,
+    name: 'Mike Kimani',
+    role: 'Concert Attendee',
+    image: story1,
+    content:
+      'The concert was electric! Great sound, top-notch security, and perfect lighting. Easily one of the best events I’ve attended this year.',
+    rating: 5
+  },
+  {
+    id: 3,
+    name: 'Lisa Wanjenga',
+    role: 'Bride',
+    image: story2,
+    content:
+      'Our wedding day was magical thanks to their planning team. The décor, timing, and coordination were flawless. They made our dream day come true!',
+    rating: 5
+  },
+  {
+    id: 4,
+    name: 'James Kimani',
+    role: 'Corporate Planner',
+    image: story1,
+    content:
+      'We hosted our annual summit with their help, and it was a huge success. Well-managed logistics, great catering, and professional execution throughout.',
+    rating: 5
+  },
+  {
+    id: 5,
+    name: 'Emma Njeri',
+    role: 'Fashion Show Guest',
+    image: story2,
+    content:
+      'The runway show was stunning! Beautiful lighting and excellent stage setup. Everything ran on time and felt super high-end.',
+    rating: 4
+  },
+  {
+    id: 6,
+    name: 'Alex Thuranira',
+    role: 'Adventure Race Participant',
+    image: story1,
+    content:
+      'The outdoor challenge event was thrilling! Routes were well-marked, safety was top-notch, and the post-event celebration was a blast.',
+    rating: 5
+  },
+  {
+    id: 7,
+    name: 'Maria Garcia',
+    role: 'Gala Guest',
+    image: story2,
+    content:
+      'From the red carpet to the dining experience, everything about the awards gala was elegant and perfectly organized.',
+    rating: 5
+  },
+  {
+    id: 8,
+    name: 'David Park',
+    role: 'Speaker at Tech Expo',
+    image: story1,
+    content:
+      'The stage tech and AV setup were spot-on. Staff were responsive, and the event flow was seamless. A truly professional setup for presenters.',
+    rating: 4
+  }
+]

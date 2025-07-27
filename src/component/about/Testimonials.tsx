@@ -67,12 +67,6 @@ const Testimonials = () => {
                     ))}
                 </div>
 
-                {/* Call to action */}
-                <div className="text-center mt-12">
-                    <button className="btn btn-primary px-8 py-3 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                        Book Your Car Now
-                    </button>
-                </div>
             </div>
         </section>
     );
