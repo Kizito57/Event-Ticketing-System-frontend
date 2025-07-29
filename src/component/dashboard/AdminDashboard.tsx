@@ -11,8 +11,9 @@ import SupportTicketManagement from './admin/SupportTicketManagement'
 import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
-  Users, Car, CalendarDays, User, LogOut, Settings,
-  ChevronLeft, ChevronRight, Building2, CreditCard, HelpCircle
+  Users, CalendarDays, User, LogOut, Settings,
+  ChevronLeft, ChevronRight, Building2, CreditCard, HelpCircle,
+  Ticket
 } from 'lucide-react'
 
 const AdminDashboard = () => {
@@ -49,7 +50,7 @@ const AdminDashboard = () => {
 
   const menuItems = [
     { id: 'users', label: 'Users', icon: Users, color: 'text-blue-500' },
-    { id: 'events', label: 'Events', icon: Car, color: 'text-green-500' },
+    { id: 'events', label: 'Events', icon: Ticket, color: 'text-green-500' },
     { id: 'bookings', label: 'Bookings', icon: CalendarDays, color: 'text-purple-500' },
     { id: 'profile', label: 'Profile', icon: User, color: 'text-orange-500' },
     { id: 'venues', label: 'Venues', icon: Building2, color: 'text-cyan-500' },

@@ -19,7 +19,7 @@ describe("register functionality", () => {
     cy.get("@emailInput")
       .should("be.visible")
       .should("have.attr", "type", "email")
-      .type("john.doe@example.com")
+      .type("dkwanjiru057@gmail.com.com")
 
     cy.getDataTest("register-password").as("passwordInput")
     cy.get("@passwordInput")
@@ -31,7 +31,7 @@ describe("register functionality", () => {
     cy.get("@confirmPasswordInput")
       .should("be.visible")
       .should("have.attr", "type", "password")
-      .type("mypassword123")
+      .type("12345678")
 
     cy.getDataTest("register-submit-button").as("submitButton")
     cy.get("@submitButton")
