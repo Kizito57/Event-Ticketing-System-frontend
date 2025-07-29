@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'http://localhost:8088';
-// export const API_BASE_URL = 'https://ef045521384b.ngrok-free.app';
+// export const API_BASE_URL = 'http://localhost:8088';
+export const API_BASE_URL = 'https://ef045521384b.ngrok-free.app';
 // export const API_BASE_URL = 'https://event-ticketing-system-backend.onrender.com';
 // export const neon_d=https://car-rental-backend-ps2q.onrender.com
 
