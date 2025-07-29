@@ -7,7 +7,7 @@ import { Search, Calendar, Users } from 'lucide-react' // Removed Ticket icon im
 
 const EventManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { events, loading, error } = useSelector((state: RootState) => state.events)
+  const { events, loading } = useSelector((state: RootState) => state.events)
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<any>(null)

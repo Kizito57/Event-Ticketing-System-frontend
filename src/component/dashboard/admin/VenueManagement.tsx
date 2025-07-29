@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Plus, Edit, Trash2, Users, Building, Calendar, Search, Eye } from 'lucide-react'
+import { Plus,  Users, Building, Calendar, Search, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { type RootState, type AppDispatch } from '../../../store/store'
 import { fetchVenues, createVenue, updateVenue, deleteVenue } from '../../../store/slices/venueSlice'

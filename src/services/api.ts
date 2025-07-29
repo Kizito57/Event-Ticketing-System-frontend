@@ -85,18 +85,18 @@ export const supportTicketsAPI = {
   delete: (id: number) => api.delete(`/support-tickets/${id}`),
 };
 
-// =================== MPESA =================== //
-// export const mpesaAPI = {
-//   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>
-//     api.post('/api/mpesa/stk-push', data),
-// };
-
-const MPESA_BASE_URL = 'https://bf5de10c9999.ngrok-free.app';
-
+//=================== MPESA =================== //
 export const mpesaAPI = {
   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>
-    axios.post(`${MPESA_BASE_URL}/api/mpesa/stk-push`, data),
+    api.post('/api/mpesa/stk-push', data),
 };
+
+// const MPESA_BASE_URL = 'https://bf5de10c9999.ngrok-free.app';
+
+// export const mpesaAPI = {
+//   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>
+//     axios.post(`${MPESA_BASE_URL}/api/mpesa/stk-push`, data),
+// };
 
 // =================== TICKET MESSAGES =================== //
 export const ticketMessagesAPI = {

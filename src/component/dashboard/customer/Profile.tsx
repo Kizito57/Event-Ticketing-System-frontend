@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { User, Camera } from 'lucide-react'
+import {  Camera } from 'lucide-react'
 import { type RootState } from '../../../store/store'
 import { usersAPI, API_BASE_URL } from '../../../services/api'
 import { setUser } from '../../../store/slices/authSlice'
@@ -11,7 +11,7 @@ const Profile = () => {
 
   const [isEditing, setIsEditing] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>('')
+  const [, setImagePreview] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
