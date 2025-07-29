@@ -5,6 +5,7 @@ import { type AppDispatch, type RootState } from '../../../store/store'
 import { fetchEvents } from '../../../store/slices/eventSlice'
 import { createBooking } from '../../../store/slices/bookingSlice'
 import { fetchVenues } from '../../../store/slices/venueSlice'
+import { toast } from 'sonner'
 
 const EventBrowsing = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -30,7 +31,7 @@ const EventBrowsing = () => {
       setSelectedVenue(venue)
       setShowVenueModal(true)
     } else {
-      alert('Venue not found.')
+      toast.error('Venue not found.')
     }
   }
 
@@ -38,18 +39,18 @@ const EventBrowsing = () => {
     e.preventDefault()
 
     if (!user?.user_id) {
-      alert('Please log in to book an event.')
+      toast.error('Please log in to book an event.')
       return
     }
 
     const quantity = parseInt(bookingData.quantity)
     if (isNaN(quantity) || quantity <= 0) {
-      alert('Please enter a valid quantity.')
+      toast.error('Please enter a valid quantity.')
       return
     }
 
     if (quantity > (selectedEvent.tickets_total - selectedEvent.tickets_sold)) {
-      alert('Not enough tickets available.')
+      toast.error('Not enough tickets available.')
       return
     }
 
