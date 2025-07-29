@@ -52,7 +52,7 @@ export const downloadSingleReceipt = (payment: Payment) => {
   }
 }
 
-// Bulk receipts download
+// All receipts download
 export const downloadAllReceipts = (payments: Payment[]) => {
   const completed = payments.filter(p => p.payment_status === 'Completed')
   if (completed.length === 0) {

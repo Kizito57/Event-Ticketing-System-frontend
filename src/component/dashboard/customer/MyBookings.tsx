@@ -5,7 +5,7 @@ import { fetchUserBookings, deleteBooking, updateBookingStatus } from '../../../
 import { CreditCard, Smartphone, Building, Star, XCircle } from 'lucide-react'
 import { MpesaPaymentModal } from './MpesaPayment'
 import { paymentsAPI } from '../../../services/api'
-import { fetchEvents, updateEvent } from '../../../store/slices/eventSlice'
+import { fetchEvents } from '../../../store/slices/eventSlice'
 
 interface PaymentMethod {
   id: number
@@ -46,7 +46,6 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ booking, onClose, onPayment
     if (type === 'mpesa') {
       setShowMpesaModal(true)
     } else {
-      // For card and bank payments, simulate success for now
       onPaymentSuccess(booking.booking_id)
       onClose()
     }
@@ -58,15 +57,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ booking, onClose, onPayment
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40" data-test="payment-modal-backdrop">
+        <div className="bg-white rounded-lg p-6 w-full max-w-md" data-test="payment-modal">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold">Complete Payment</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600" data-test="payment-modal-close">
               <XCircle className="h-5 w-5" />
             </button>
           </div>
-          
+
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <p><strong>Booking ID:</strong> {booking.booking_id}</p>
             <p><strong>Quantity:</strong> {booking.quantity}</p>
@@ -74,12 +73,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ booking, onClose, onPayment
           </div>
 
           <h4 className="font-semibold mb-3">Choose Payment Method</h4>
-          
+
           {mockPaymentMethods.map(method => (
-            <div 
-              key={method.id} 
-              onClick={() => handlePayment(method.type)} 
+            <div
+              key={method.id}
+              onClick={() => handlePayment(method.type)}
               className="border p-4 rounded-lg cursor-pointer hover:bg-blue-50 mb-3 transition-colors"
+              data-test={`payment-option-${method.type}`}
             >
               <div className="flex items-center gap-3">
                 {method.type === 'card' && <CreditCard className="h-5 w-5" />}
@@ -119,7 +119,6 @@ const MyBookings = () => {
   const { user } = useSelector((state: RootState) => state.auth)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<any>(null)
-  const { events } = useSelector((state: RootState) => state.events)
 
   useEffect(() => {
     if (user?.user_id) {
@@ -138,78 +137,41 @@ const MyBookings = () => {
     setShowPaymentModal(true)
   }
 
-  // const handlePaymentSuccess = async (bookingId: number) => {
-  //   try {
-  //     await dispatch(updateBookingStatus({ bookingId, status: 'Confirmed' }))
-      
-  //     setShowPaymentModal(false)
-  //     setSelectedBooking(null)
-      
-  //     if (user?.user_id) {
-  //       dispatch(fetchUserBookings(user.user_id))
-  //     }
-      
-  //   } catch (error) {
-  //     console.error('Error updating booking status:', error)
-  //   }
-  // }
+  const handlePaymentSuccess = async (bookingId: number) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 3000))
 
-  // Only the handlePaymentSuccess function needs to be updated in MyBookings.tsx
+      const payments = await paymentsAPI.getAll()
+      const relatedPayment = payments.data.find((p: any) =>
+        p.booking_id === bookingId
+      )
 
-const handlePaymentSuccess = async (bookingId: number) => {
-  try {
-    // First verify the payment is actually completed
-    const payments = await paymentsAPI.getAll()
-    const relatedPayment = payments.data.find((p: any) => 
-      p.booking_id === bookingId && 
-      ['success', 'completed'].includes(p.payment_status?.toLowerCase())
-    )
-    
-    if (!relatedPayment) {
-      console.error('No successful payment found for booking:', bookingId)
-      return
-    }
+      if (!relatedPayment) return
 
-      
-    // Find the booking to get quantity and event_id
-    const booking = bookings.find(b => b.booking_id === bookingId)
-    if (!booking) {
-      console.error('Booking not found:', bookingId)
-      return
-    }
-    
-    // Only update booking status if payment is confirmed successful
-    await dispatch(updateBookingStatus({ bookingId, status: 'Confirmed' }))
+      const status = relatedPayment.payment_status?.toLowerCase()
+      const transactionId = relatedPayment.transaction_id
 
-    // Update event ticket counts
-    const eventToUpdate = events.find(e => e.event_id === booking.event_id)
-    if (eventToUpdate) {
-      const updatedEventData = {
-        ...eventToUpdate,
-        tickets_sold: (eventToUpdate.tickets_sold || 0) + booking.quantity,
-        tickets_total: eventToUpdate.tickets_total - booking.quantity
+      const hasRealMpesaReceipt =
+        transactionId &&
+        !transactionId.startsWith('MPESA_') &&
+        !transactionId.startsWith('ws_CO_') &&
+        transactionId.length > 10
+
+      if (status === 'completed' || hasRealMpesaReceipt) {
+        await dispatch(updateBookingStatus({ bookingId, status: 'Confirmed' }))
       }
-      
-      await dispatch(updateEvent({ 
-        id: booking.event_id, 
-        eventData: updatedEventData 
-      }))
+
+      setShowPaymentModal(false)
+      setSelectedBooking(null)
+
+      if (user?.user_id) {
+        dispatch(fetchUserBookings(user.user_id))
+        dispatch(fetchEvents())
+      }
+    } catch (error) {
+      console.error('Error in handlePaymentSuccess:', error)
     }
-    
-    
-    setShowPaymentModal(false)
-    setSelectedBooking(null)
-    
-    // Refresh both bookings and payment data
-    if (user?.user_id) {
-      dispatch(fetchUserBookings(user.user_id))
-      dispatch(fetchEvents()) 
-    }
-    
-  } catch (error) {
-    console.error('Error updating booking status:', error)
   }
-}
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -222,29 +184,29 @@ const handlePaymentSuccess = async (bookingId: number) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-64" data-test="loading-spinner">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
     )
   }
 
   return (
-    <div className="my-bookings">
+    <div className="my-bookings" data-test="my-bookings-page">
       <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
 
       {error && (
-        <div className="alert alert-error mb-4">
+        <div className="alert alert-error mb-4" data-test="booking-error">
           <span>{error}</span>
         </div>
       )}
 
       {myBookings.length === 0 ? (
-        <div className="text-center py-8">
+        <div className="text-center py-8" data-test="no-bookings">
           <p className="text-lg text-gray-500">You have no bookings yet.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="table table-zebra w-full">
+          <table className="table table-zebra w-full" data-test="booking-table">
             <thead>
               <tr>
                 <th>Booking ID</th>
@@ -258,7 +220,7 @@ const handlePaymentSuccess = async (bookingId: number) => {
             </thead>
             <tbody>
               {myBookings.map((booking) => (
-                <tr key={booking.booking_id}>
+                <tr key={booking.booking_id} data-test={`booking-row-${booking.booking_id}`}>
                   <td>{booking.booking_id}</td>
                   <td>{booking.event_id}</td>
                   <td>{booking.quantity}</td>
@@ -270,7 +232,7 @@ const handlePaymentSuccess = async (bookingId: number) => {
                         : booking.booking_status === 'Pending'
                         ? 'badge-warning'
                         : 'badge-error'
-                    }`}>
+                    }`} data-test={`booking-status-${booking.booking_id}`}>
                       {booking.booking_status}
                     </span>
                   </td>
@@ -281,12 +243,14 @@ const handlePaymentSuccess = async (bookingId: number) => {
                         <button
                           onClick={() => handlePayNow(booking)}
                           className="btn btn-sm btn-success"
+                          data-test={`pay-now-${booking.booking_id}`}
                         >
                           Pay Now
                         </button>
                         <button
                           onClick={() => handleCancelBooking(booking.booking_id)}
                           className="btn btn-sm btn-error"
+                          data-test={`cancel-booking-${booking.booking_id}`}
                         >
                           Cancel
                         </button>

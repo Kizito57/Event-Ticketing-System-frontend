@@ -9,9 +9,9 @@ import SupportCenter from './customer/SupportCenter'
 import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
-  CalendarCheck2, User, LogOut, 
+  CalendarCheck2, User, LogOut,
   ChevronLeft, ChevronRight,
-  Ticket, CreditCard, HelpCircle, 
+  Ticket, CreditCard, HelpCircle,
   DiamondIcon
 } from 'lucide-react'
 
@@ -32,11 +32,10 @@ const UserDashboard = () => {
         return <EventBrowsing />
       case 'bookings':
         return <MyBookings />
-            case 'payments':
-      return <MyPayments />
-    case 'support':
-      return <SupportCenter />
-
+      case 'payments':
+        return <MyPayments />
+      case 'support':
+        return <SupportCenter />
       case 'profile':
         return <Profile />
       default:
@@ -44,24 +43,22 @@ const UserDashboard = () => {
     }
   }
 
-
-
   const menuItems = [
-    { 
-      id: 'events', 
-      label: 'Discover Events', 
-      icon: Ticket, 
+    {
+      id: 'events',
+      label: 'Discover Events',
+      icon: Ticket,
       color: 'text-emerald-500',
       description: 'Find your perfect event to enjoy'
     },
-    { 
-      id: 'bookings', 
-      label: 'Bookings', 
-      icon: CalendarCheck2, 
+    {
+      id: 'bookings',
+      label: 'Bookings',
+      icon: CalendarCheck2,
       color: 'text-blue-500',
       description: 'View your bookings'
     },
-        {
+    {
       id: 'payments',
       label: 'Payments',
       icon: CreditCard,
@@ -75,26 +72,25 @@ const UserDashboard = () => {
       color: 'text-red-500',
       description: 'Need help? Contact us'
     },
-
-    { 
-      id: 'profile', 
-      label: 'Profile', 
-      icon: User, 
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: User,
       color: 'text-purple-500',
       description: 'Manage your account'
-    },
+    }
   ]
 
   const getGreeting = () => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Good Morning'
-    if (hour < 17) return 'Good Afternoon' 
+    if (hour < 17) return 'Good Afternoon'
     return 'Good Evening'
   }
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-cyan-50">
-      {/* Enhanced Sidebar */}
+      {/* Sidebar */}
       <aside
         className={`transition-all duration-300 ease-in-out bg-white/90 backdrop-blur-lg shadow-xl border-r border-emerald-100 ${
           sidebarOpen ? 'w-80' : 'w-20'
@@ -115,6 +111,7 @@ const UserDashboard = () => {
               </div>
             )}
             <button
+              data-test="sidebar-toggle"
               className="btn btn-sm btn-ghost hover:bg-indigo-50 transition-colors rounded-xl"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
@@ -135,6 +132,7 @@ const UserDashboard = () => {
               return (
                 <li key={item.id}>
                   <button
+                    data-test={`menu-${item.id}`}
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-200 group relative overflow-hidden ${
                       activeTab === item.id
@@ -142,10 +140,10 @@ const UserDashboard = () => {
                         : 'text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-gray-800'
                     }`}
                   >
-                    <Icon 
+                    <Icon
                       className={`w-6 h-6 transition-all duration-200 ${
                         activeTab === item.id ? 'text-white' : item.color
-                      }`} 
+                      }`}
                     />
                     {sidebarOpen && (
                       <div className="flex flex-col items-start">
@@ -169,12 +167,11 @@ const UserDashboard = () => {
           </ul>
         </nav>
 
-        {/* User Profile & Logout */}
+        {/* Logout */}
         <div className="absolute bottom-6 left-6 right-6">
-          
-          
-          <button 
-            onClick={handleLogout} 
+          <button
+            data-test="logout-button"
+            onClick={handleLogout}
             className={`btn border-blue-100 text-green-500 hover:bg-emerald-50 hover:border-emerald-200 w-full transition-all duration-200 rounded-xl ${
               !sidebarOpen ? 'btn-square' : 'bg-green-50/50'
             }`}
@@ -185,35 +182,34 @@ const UserDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Enhanced Header */}
         <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-indigo-100 px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-cyan-600 bg-clip-text text-transparent">
+              <h1
+                data-test="greeting"
+                className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-green-600 to-cyan-600 bg-clip-text text-transparent"
+              >
                 {getGreeting()}, {user?.first_name}!
               </h1>
               <p className="text-gray-500 mt-1 text-lg">
                 Ready for your next adventure?
               </p>
             </div>
-            
-         
           </div>
         </header>
 
-        {/* Content Area */}
         <div className="flex-1 overflow-auto">
           <div className="p-8">
-            <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-sm border border-indigo-100 min-h-full relative overflow-hidden">
-              {/* Decorative Elements */}
+            <div
+              data-test="dashboard-content"
+              className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-sm border border-indigo-100 min-h-full relative overflow-hidden"
+            >
+              {/* Decorative Blobs */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-blue-100 to-green-100 rounded-full -translate-y-32 translate-x-32 opacity-30"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-100 to-yellow-100 rounded-full translate-y-24 -translate-x-24 opacity-30"></div>
-              
-              <div className="relative z-10 p-8">
-                {renderContent()}
-              </div>
+              <div className="relative z-10 p-8">{renderContent()}</div>
             </div>
           </div>
         </div>

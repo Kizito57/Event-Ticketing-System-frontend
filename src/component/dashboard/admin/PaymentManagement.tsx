@@ -81,6 +81,13 @@ const PaymentManagement: React.FC = () => {
     }
   }
 
+  // Check if payment is M-Pesa and has real transaction ID (automatic update)
+  const isMpesaAutoUpdated = (payment: Payment): boolean => {
+    return payment.payment_method === 'mpesa' &&
+           typeof payment.transaction_id === 'string' &&
+           !payment.transaction_id.startsWith('MPESA_')
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -185,21 +192,31 @@ const PaymentManagement: React.FC = () => {
                   <div className="text-sm text-gray-900">Booking #{payment.booking_id}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm font-bold text-gray-900">${Number(payment.amount).toFixed(2)}</div>
+                  <div className="text-sm font-bold text-gray-900">KES{Number(payment.amount).toFixed(2)}</div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-sm text-gray-600">{payment.payment_method || 'Card'}</div>
                 </td>
                 <td className="px-6 py-4">
-                  <select
-                    value={payment.payment_status}
-                    onChange={(e) => handleStatusUpdate(payment.payment_id, e.target.value)}
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(payment.payment_status)}`}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Failed">Failed</option>
-                  </select>
+                  {isMpesaAutoUpdated(payment) ? (
+                    // Read-only badge for M-Pesa payments with real transaction IDs
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.payment_status)}`}>
+                      {getStatusIcon(payment.payment_status)}
+                      <span className="ml-1">{payment.payment_status}</span>
+                      <span className="ml-1 text-xs">(Auto)</span>
+                    </span>
+                  ) : (
+                    // Editable dropdown for manual payments or pending M-Pesa
+                    <select
+                      value={payment.payment_status}
+                      onChange={(e) => handleStatusUpdate(payment.payment_id, e.target.value)}
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(payment.payment_status)}`}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Failed">Failed</option>
+                    </select>
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center text-sm text-gray-600">
@@ -252,7 +269,7 @@ const PaymentManagement: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Amount:</span>
-                <span className="font-medium text-lg">${Number(selectedPayment.amount).toFixed(2)}</span>
+                <span className="font-medium text-lg">KES{Number(selectedPayment.amount).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Method:</span>
@@ -260,10 +277,15 @@ const PaymentManagement: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Status:</span>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedPayment.payment_status)}`}>
-                  {getStatusIcon(selectedPayment.payment_status)}
-                  <span className="ml-1">{selectedPayment.payment_status}</span>
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedPayment.payment_status)}`}>
+                    {getStatusIcon(selectedPayment.payment_status)}
+                    <span className="ml-1">{selectedPayment.payment_status}</span>
+                  </span>
+                  {isMpesaAutoUpdated(selectedPayment) && (
+                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Auto-Updated</span>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Date:</span>

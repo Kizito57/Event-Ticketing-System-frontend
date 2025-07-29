@@ -4,12 +4,14 @@ import Navbar from "../nav/Navbar"
 const Dashboard = () => {
     return (
         <div>
-            <Navbar />
+            <div data-test="dashboard-navbar">
+                <Navbar />
+            </div>
             <div>
-                <aside>
-
+                <aside data-test="dashboard-aside">
+                    {/* Add sidebar content here if needed */}
                 </aside>
-                <main>
+                <main data-test="dashboard-main">
                     <Outlet />
                 </main>
             </div>

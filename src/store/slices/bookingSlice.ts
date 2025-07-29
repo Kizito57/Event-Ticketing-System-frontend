@@ -76,12 +76,12 @@ export const updateBooking = createAsyncThunk(
   }
 )
 
-// Update booking status (specifically for payment confirmation)
+// Update booking status (uses dedicated endpoint with ticket management)
 export const updateBookingStatus = createAsyncThunk(
   'bookings/updateStatus',
   async ({ bookingId, status }: { bookingId: number; status: string }, { rejectWithValue }) => {
     try {
-      const response = await bookingAPI.update(bookingId, { booking_status: status })
+      const response = await bookingAPI.updateStatus(bookingId, { status })
       return response.data
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to update booking status')
@@ -159,7 +159,9 @@ const bookingSlice = createSlice({
       })
       .addCase(createBooking.fulfilled, (state, action) => {
         state.loading = false
-        state.bookings.push(action.payload)
+        // Handle both possible response formats
+        const booking = action.payload.booking || action.payload
+        state.bookings.push(booking)
       })
       .addCase(createBooking.rejected, (state, action) => {
         state.loading = false
@@ -173,9 +175,10 @@ const bookingSlice = createSlice({
       })
       .addCase(updateBooking.fulfilled, (state, action) => {
         state.loading = false
-        const index = state.bookings.findIndex(booking => booking.booking_id === action.payload.booking_id)
+        const booking = action.payload.booking || action.payload
+        const index = state.bookings.findIndex(b => b.booking_id === booking.booking_id)
         if (index !== -1) {
-          state.bookings[index] = action.payload
+          state.bookings[index] = booking
         }
       })
       .addCase(updateBooking.rejected, (state, action) => {
@@ -183,16 +186,18 @@ const bookingSlice = createSlice({
         state.error = action.payload as string
       })
       
-      // Update booking status (for payment confirmation)
+      // Update booking status (dedicated endpoint with ticket management)
       .addCase(updateBookingStatus.pending, (state) => {
-        state.loading = false // Don't show loading for status updates
+        state.loading = false // Don't show loading for status updates to avoid UI flickering
         state.error = null
       })
       .addCase(updateBookingStatus.fulfilled, (state, action) => {
         state.loading = false
-        const index = state.bookings.findIndex(booking => booking.booking_id === action.payload.booking_id)
+        // Handle the response format from the new endpoint
+        const booking = action.payload.booking || action.payload
+        const index = state.bookings.findIndex(b => b.booking_id === booking.booking_id)
         if (index !== -1) {
-          state.bookings[index] = action.payload
+          state.bookings[index] = booking
         }
       })
       .addCase(updateBookingStatus.rejected, (state, action) => {

@@ -224,7 +224,6 @@ const EventManagement = () => {
           <div className="card-body">
             <h3 className="card-title">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
             <form onSubmit={handleSubmit}>
-              {/* ... your existing form fields (unchanged) ... */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Column - Form Fields */}
                 <div className="space-y-4">
@@ -398,78 +397,91 @@ const EventManagement = () => {
               <th className="bg-base-200 font-semibold">Ticket Price</th>
               <th className="bg-base-200 font-semibold">Total Tickets</th>
               <th className="bg-base-200 font-semibold">Sold</th>
+              <th className="bg-base-200 font-semibold">Available</th>
               <th className="bg-base-200 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredEvents.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-8 text-base-content/60">
+                <td colSpan={11} className="text-center py-8 text-base-content/60">
                   No events found
                 </td>
               </tr>
             ) : (
-              filteredEvents.map((event) => (
-                <tr key={event.event_id}>
-                  <td>
-                    <div className="avatar">
-                      <div className="w-16 h-12 rounded overflow-hidden">
-                        {event.image_url ? (
-                          <img
-                            src={
-                              event.image_url.startsWith('http')
-                                ? event.image_url
-                                : `${API_BASE_URL}${event.image_url}`
-                            }
-                            alt={event.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-base-300 flex items-center justify-center">
-                            <svg
-                              className="w-6 h-6 text-base-content/30"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                              />
-                            </svg>
-                          </div>
-                        )}
+              filteredEvents.map((event) => {
+                // Calculate available tickets in real-time
+                const soldTickets = event.tickets_sold || 0
+                const totalTickets = event.tickets_total
+                const availableTickets = totalTickets - soldTickets
+                
+                return (
+                  <tr key={event.event_id}>
+                    <td>
+                      <div className="avatar">
+                        <div className="w-16 h-12 rounded overflow-hidden">
+                          {event.image_url ? (
+                            <img
+                              src={
+                                event.image_url.startsWith('http')
+                                  ? event.image_url
+                                  : `${API_BASE_URL}${event.image_url}`
+                              }
+                              alt={event.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-base-300 flex items-center justify-center">
+                              <svg
+                                className="w-6 h-6 text-base-content/30"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>{event.event_id}</td>
-                  <td className="font-medium">{event.title}</td>
-                  <td>{new Date(event.date).toISOString().slice(0, 10)}</td>
-                  <td>{event.time}</td>
-                  <td>{event.category}</td>
-                  <td className="font-semibold">${event.ticket_price}</td>
-                  <td>{event.tickets_total}</td>
-                  <td>{event.tickets_sold || 0}</td>
-                  <td>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(event)}
-                        className="btn btn-sm btn-info min-h-8 h-8"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(event.event_id)}
-                        className="btn btn-sm btn-error min-h-8 h-8"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td>{event.event_id}</td>
+                    <td className="font-medium">{event.title}</td>
+                    <td>{new Date(event.date).toISOString().slice(0, 10)}</td>
+                    <td>{event.time}</td>
+                    <td>{event.category}</td>
+                    <td className="font-semibold">${event.ticket_price}</td>
+                    <td className="font-semibold text-blue-600">{totalTickets}</td>
+                    <td className="font-semibold text-purple-600">{soldTickets}</td>
+                    <td className={`font-semibold ${
+                      availableTickets > 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {availableTickets}
+                    </td>
+                    <td>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(event)}
+                          className="btn btn-sm btn-info min-h-8 h-8"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(event.event_id)}
+                          className="btn btn-sm btn-error min-h-8 h-8"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })
             )}
           </tbody>
         </table>

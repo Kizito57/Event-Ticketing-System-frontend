@@ -11,13 +11,13 @@ describe("login functionality", () => {
     cy.get("@login-emailInput")
       .should("be.visible")
       .should("have.attr", "type", "email")
-      .type("bkemboi590@gmail.com")
+      .type("dkwanjiru097@gmail.com")
 
     cy.getDataTest("login-password-input").as("login-passwordInput")
     cy.get("@login-passwordInput")
       .should("be.visible")
       .should("have.attr", "type", "password")
-      .type("mypassword123")
+      .type("12345678")
 
     cy.getDataTest("login-submit-button").as("login-submitButton")
     cy.get("@login-submitButton")
@@ -35,7 +35,7 @@ describe("login functionality", () => {
 
     cy.getDataTest("login-email-input").as("login-emailInput")
     cy.get("@login-emailInput")
-      .type("bkemboi590@gmail.com")
+      .type("dkwanjiru097@gmail.com")
 
     cy.getDataTest("login-password-input").as("login-passwordInput")
     cy.get("@login-passwordInput")

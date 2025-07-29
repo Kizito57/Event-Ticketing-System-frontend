@@ -9,6 +9,7 @@ interface User {
   email: string
   role: 'user' | 'admin'
   is_verified: boolean
+  image_url?: string
 }
 
 interface UpdateUserData {
@@ -18,6 +19,7 @@ interface UpdateUserData {
   email?: string
   role?: 'user' | 'admin'
   is_verified?: boolean
+  image_url?: string
 }
 
 interface UserState {

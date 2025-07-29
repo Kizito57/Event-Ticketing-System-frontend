@@ -11,8 +11,8 @@ import SupportTicketManagement from './admin/SupportTicketManagement'
 import Profile from './customer/Profile'
 import { toast } from 'sonner'
 import {
-   Users, Car, CalendarDays, User, LogOut, Settings, 
-  ChevronLeft, ChevronRight,Building2, CreditCard, HelpCircle
+  Users, Car, CalendarDays, User, LogOut, Settings,
+  ChevronLeft, ChevronRight, Building2, CreditCard, HelpCircle
 } from 'lucide-react'
 
 const AdminDashboard = () => {
@@ -34,20 +34,18 @@ const AdminDashboard = () => {
         return <EventManagement />
       case 'bookings':
         return <BookingManagement />
-        case 'venues':
-      return <VenueManagement />
-    case 'payments':
-      return <PaymentManagement />
-    case 'support':
-      return <SupportTicketManagement />
+      case 'venues':
+        return <VenueManagement />
+      case 'payments':
+        return <PaymentManagement />
+      case 'support':
+        return <SupportTicketManagement />
       case 'profile':
         return <Profile />
       default:
         return <UserManagement />
     }
   }
-
-
 
   const menuItems = [
     { id: 'users', label: 'Users', icon: Users, color: 'text-blue-500' },
@@ -60,18 +58,19 @@ const AdminDashboard = () => {
   ]
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" data-test="admin-dashboard">
       {/* Sidebar */}
       <aside
         className={`transition-all duration-300 ease-in-out bg-white shadow-xl border-r border-slate-200 ${
           sidebarOpen ? 'w-72' : 'w-20'
         } min-h-screen relative`}
+        data-test="admin-sidebar"
       >
         {/* Sidebar Header */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center justify-between">
             {sidebarOpen && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" data-test="sidebar-header">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <Settings className="w-5 h-5 text-white" />
                 </div>
@@ -84,6 +83,7 @@ const AdminDashboard = () => {
             <button
               className="btn btn-sm btn-ghost hover:bg-slate-100 transition-colors"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              data-test="sidebar-toggle"
             >
               {sidebarOpen ? (
                 <ChevronLeft className="w-5 h-5 text-slate-600" />
@@ -108,11 +108,12 @@ const AdminDashboard = () => {
                         ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
                     }`}
+                    data-test={`sidebar-tab-${item.id}`}
                   >
-                    <Icon 
+                    <Icon
                       className={`w-5 h-5 transition-colors ${
                         activeTab === item.id ? 'text-white' : item.color
-                      }`} 
+                      }`}
                     />
                     {sidebarOpen && (
                       <span className="font-medium">{item.label}</span>
@@ -129,12 +130,12 @@ const AdminDashboard = () => {
 
         {/* User Profile & Logout */}
         <div className="absolute bottom-6 left-4 right-4">
-       
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             className={`btn btn-outline border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 w-full transition-all duration-200 ${
               !sidebarOpen ? 'btn-square' : ''
             }`}
+            data-test="sidebar-logout-button"
           >
             <LogOut className="w-5 h-5" />
             {sidebarOpen && <span className="ml-2">Logout</span>}
@@ -145,28 +146,25 @@ const AdminDashboard = () => {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-slate-200 px-8 py-6">
+        <header className="bg-white shadow-sm border-b border-slate-200 px-8 py-6" data-test="admin-header">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              <h1
+                className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent"
+                data-test="admin-welcome-message"
+              >
                 Welcome back, {user?.first_name}! 👋
               </h1>
-              <p className="text-slate-500 mt-1">
-                Manage your events business efficiently
-              </p>
+              <p className="text-slate-500 mt-1">Manage your events business efficiently</p>
             </div>
-            
-         
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto bg-slate-50/50">
+        <div className="flex-1 overflow-auto bg-slate-50/50" data-test="admin-main-content">
           <div className="p-8">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 min-h-full">
-              <div className="p-6">
-                {renderContent()}
-              </div>
+              <div className="p-6">{renderContent()}</div>
             </div>
           </div>
         </div>

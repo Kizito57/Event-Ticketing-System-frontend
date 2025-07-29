@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react' 
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import {
@@ -6,7 +6,7 @@ import {
   deleteBooking,
   updateBooking,
 } from '../../../store/slices/bookingSlice'
-import { Search, Users, CheckCircle, Clock } from 'lucide-react' // Icons for stats and search
+import { Search, Users, CheckCircle, Clock } from 'lucide-react'
 
 const BookingManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -66,7 +66,6 @@ const BookingManagement = () => {
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString()
 
-  // Filter bookings based on search term (user_id, event_id or status)
   const filteredBookings = bookings.filter((booking) => {
     const lowerSearch = searchTerm.toLowerCase()
     return (
@@ -76,7 +75,6 @@ const BookingManagement = () => {
     )
   })
 
-  // Stats calculation
   const stats = {
     total: bookings.length,
     confirmed: bookings.filter(b => b.booking_status === 'Confirmed').length,
@@ -86,7 +84,7 @@ const BookingManagement = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <span className="loading loading-spinner loading-lg"></span>
+        <span className="loading loading-spinner loading-lg" data-test="booking-loading-spinner" />
       </div>
     )
   }
@@ -94,26 +92,25 @@ const BookingManagement = () => {
   return (
     <div className="w-full space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Booking Management</h2>
+        <h2 className="text-2xl font-bold" data-test="booking-management-title">Booking Management</h2>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center" data-test="booking-stats-total">
           <div>
             <p className="text-sm text-base-content/70">Total Bookings</p>
             <p className="text-xl font-bold">{stats.total}</p>
           </div>
           <Users className="h-8 w-8 text-blue-600" />
         </div>
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center" data-test="booking-stats-confirmed">
           <div>
             <p className="text-sm text-base-content/70">Confirmed</p>
             <p className="text-xl font-bold">{stats.confirmed}</p>
           </div>
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center">
+        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center" data-test="booking-stats-pending">
           <div>
             <p className="text-sm text-base-content/70">Pending</p>
             <p className="text-xl font-bold">{stats.pending}</p>
@@ -122,10 +119,10 @@ const BookingManagement = () => {
         </div>
       </div>
 
-      {/* Search Input */}
       <div className="relative mb-4 max-w-sm">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
         <input
+          data-test="booking-search-input"
           type="text"
           placeholder="Search by User ID, Event ID, or Status"
           value={searchTerm}
@@ -135,13 +132,13 @@ const BookingManagement = () => {
       </div>
 
       {error && (
-        <div className="alert alert-error mb-4">
+        <div className="alert alert-error mb-4" data-test="booking-error-alert">
           <span>{error}</span>
         </div>
       )}
 
       <div className="overflow-x-auto">
-        <table className="table table-zebra w-full bg-base-100 shadow-lg rounded-lg">
+        <table className="table table-zebra w-full bg-base-100 shadow-lg rounded-lg" data-test="booking-table">
           <thead>
             <tr>
               <th>Booking ID</th>
@@ -157,20 +154,20 @@ const BookingManagement = () => {
           <tbody>
             {filteredBookings.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-8 text-base-content/60">
+                <td colSpan={8} className="text-center py-8 text-base-content/60" data-test="booking-empty-state">
                   No bookings found
                 </td>
               </tr>
             ) : filteredBookings.map((booking) =>
               editID === booking.booking_id ? (
-                <tr key={booking.booking_id}>
+                <tr key={booking.booking_id} data-test={`booking-edit-row-${booking.booking_id}`}>
                   <td>{booking.booking_id}</td>
-                  <td><input name="user_id" value={formData.user_id} onChange={handleEditChange} /></td>
-                  <td><input name="event_id" value={formData.event_id} onChange={handleEditChange} /></td>
-                  <td><input name="quantity" type="number" value={formData.quantity} onChange={handleEditChange} /></td>
-                  <td><input name="total_amount" type="number" step="0.01" value={formData.total_amount} onChange={handleEditChange} /></td>
+                  <td><input name="user_id" value={formData.user_id} onChange={handleEditChange} data-test="edit-user-id" /></td>
+                  <td><input name="event_id" value={formData.event_id} onChange={handleEditChange} data-test="edit-event-id" /></td>
+                  <td><input name="quantity" type="number" value={formData.quantity} onChange={handleEditChange} data-test="edit-quantity" /></td>
+                  <td><input name="total_amount" type="number" step="0.01" value={formData.total_amount} onChange={handleEditChange} data-test="edit-total-amount" /></td>
                   <td>
-                    <select name="booking_status" value={formData.booking_status} onChange={handleEditChange}>
+                    <select name="booking_status" value={formData.booking_status} onChange={handleEditChange} data-test="edit-booking-status">
                       <option value="Pending">Pending</option>
                       <option value="Confirmed">Confirmed</option>
                       <option value="Cancelled">Cancelled</option>
@@ -178,12 +175,12 @@ const BookingManagement = () => {
                   </td>
                   <td>{formatDate(booking.created_at)}</td>
                   <td>
-                    <button className="btn btn-sm btn-success" onClick={handleUpdate}>Save</button>
-                    <button className="btn btn-sm" onClick={() => setEditID(null)}>Cancel</button>
+                    <button className="btn btn-sm btn-success" onClick={handleUpdate} data-test="save-edit-button">Save</button>
+                    <button className="btn btn-sm" onClick={() => setEditID(null)} data-test="cancel-edit-button">Cancel</button>
                   </td>
                 </tr>
               ) : (
-                <tr key={booking.booking_id}>
+                <tr key={booking.booking_id} data-test={`booking-row-${booking.booking_id}`}>
                   <td>{booking.booking_id}</td>
                   <td>{booking.user_id}</td>
                   <td>{booking.event_id}</td>
@@ -196,15 +193,15 @@ const BookingManagement = () => {
                         : booking.booking_status === 'Pending'
                         ? 'badge-warning'
                         : 'badge-error'
-                    }`}>
+                    }`} data-test={`booking-status-${booking.booking_status.toLowerCase()}`}>
                       {booking.booking_status}
                     </span>
                   </td>
                   <td>{formatDate(booking.created_at)}</td>
                   <td>
                     <div className="flex gap-2">
-                      <button className="btn btn-sm btn-info" onClick={() => handleEditClick(booking)}>Edit</button>
-                      <button className="btn btn-sm btn-error" onClick={() => handleDelete(booking.booking_id)}>Delete</button>
+                      <button className="btn btn-sm btn-info" onClick={() => handleEditClick(booking)} data-test="edit-booking-button">Edit</button>
+                      <button className="btn btn-sm btn-error" onClick={() => handleDelete(booking.booking_id)} data-test="delete-booking-button">Delete</button>
                     </div>
                   </td>
                 </tr>

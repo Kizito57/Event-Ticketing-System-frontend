@@ -9,6 +9,7 @@ interface User {
   email: string
   role: 'admin' | 'user'
   is_verified: boolean
+  image_url?: string
 }
 
 interface AuthState {
@@ -110,6 +111,11 @@ const authSlice = createSlice({
     setRegistrationEmail: (state, action: PayloadAction<string>) => {
       state.registrationEmail = action.payload
     },
+    setUser: (state, action: PayloadAction<User>) => {
+    state.user = action.payload
+    localStorage.setItem('user', JSON.stringify(action.payload)) // Also persist to localStorage
+  },
+    
   },
   extraReducers: (builder) => {
     builder
@@ -164,5 +170,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { logout, clearError, setRegistrationEmail } = authSlice.actions
+export const { logout, clearError, setRegistrationEmail,setUser} = authSlice.actions
 export default authSlice.reducer
