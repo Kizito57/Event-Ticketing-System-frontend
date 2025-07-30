@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Search, Users, ShieldCheck, UserCheck } from 'lucide-react'
+import { Search, Users, ShieldCheck, UserCheck, Edit, Trash2 } from 'lucide-react'
 import { type AppDispatch, type RootState } from '../../../store/store'
 import {
   fetchUsers,
@@ -10,6 +10,7 @@ import {
   setSelectedUser,
 } from '../../../store/slices/usersSlice'
 import { API_BASE_URL } from '../../../services/api'
+import { toast } from 'react-toastify'
 
 interface UserFormData {
   first_name: string
@@ -24,6 +25,8 @@ const UserManagement = () => {
   const { users, loading, selectedUser } = useSelector((state: RootState) => state.users)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState<UserFormData>({
     first_name: '',
@@ -42,9 +45,26 @@ const UserManagement = () => {
   }, [isModalOpen, dispatch])
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      await dispatch(deleteUser(id))
+    setUserToDelete(id)
+    setIsDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (userToDelete) {
+      try {
+        await dispatch(deleteUser(userToDelete)).unwrap()
+        toast.success('User deleted successfully')
+      } catch (error: any) {
+        toast.error(error || 'Failed to delete user')
+      }
+      setIsDeleteModalOpen(false)
+      setUserToDelete(null)
     }
+  }
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false)
+    setUserToDelete(null)
   }
 
   const handleEdit = (user: any) => {
@@ -206,7 +226,7 @@ const UserManagement = () => {
                         className="btn btn-sm btn-info"
                         disabled={loading}
                       >
-                        Edit
+                        <Edit className="w-4 h-4" />
                       </button>
                       <button
                         data-test={`delete-user-${user.user_id}`}
@@ -214,7 +234,7 @@ const UserManagement = () => {
                         className="btn btn-sm btn-error"
                         disabled={loading}
                       >
-                        Delete
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -312,6 +332,33 @@ const UserManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" data-test="delete-modal">
+          <div className="bg-white dark:bg-base-100 rounded-lg shadow-2xl border p-6">
+            <p className="mb-4">Are you sure you want to delete this user?</p>
+            <div className="flex justify-end gap-2">
+              <button
+                id="cancel-btn"
+                onClick={cancelDelete}
+                className="btn btn-outline"
+                data-test="delete-cancel-button"
+              >
+                No
+              </button>
+              <button
+                id="delete-btn"
+                onClick={confirmDelete}
+                className="btn btn-primary"
+                data-test="delete-confirm-button"
+              >
+                Yes
+              </button>
+            </div>
           </div>
         </div>
       )}
