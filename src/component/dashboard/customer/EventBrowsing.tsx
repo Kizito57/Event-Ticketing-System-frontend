@@ -109,7 +109,7 @@ const EventBrowsing = () => {
             <div className="relative h-56 overflow-hidden">
               {event.image_url ? (
                 <img
-                  src={event.image_url.startsWith('http') ? event.image_url : `http://localhost:8088${event.image_url}`}
+                  src={event.image_url.startsWith('http') ? event.image_url : `https://event-ticketing-system-backend.onrender.com${event.image_url}`}
                   alt={event.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -257,7 +257,7 @@ const EventBrowsing = () => {
               <div className="h-48 relative">
                 {selectedVenue.image_url ? (
                   <img
-                    src={selectedVenue.image_url.startsWith('http') ? selectedVenue.image_url : `http://localhost:8088${selectedVenue.image_url}`}
+                    src={selectedVenue.image_url.startsWith('http') ? selectedVenue.image_url : `https://event-ticketing-system-backend.onrender.com${selectedVenue.image_url}`}
                     alt={selectedVenue.name}
                     className="w-full h-full object-cover"
                   />
