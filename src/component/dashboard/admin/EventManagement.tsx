@@ -1,25 +1,49 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { type AppDispatch, type RootState } from '../../../store/store'
+import { Plus, Calendar, DollarSign, Search, Edit, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { type RootState, type AppDispatch } from '../../../store/store'
 import { fetchEvents, createEvent, updateEvent, deleteEvent } from '../../../store/slices/eventSlice'
+import { fetchVenues } from '../../../store/slices/venueSlice'
 import { API_BASE_URL } from '../../../services/api'
-import { Search, Calendar, Users } from 'lucide-react' // Removed Ticket icon import
 
-const EventManagement = () => {
+// Define interfaces for type safety
+interface Event {
+  event_id: number
+  title: string
+  description?: string
+  venue_id: number
+  category: string
+  date: string
+  time: string
+  image_url?: string
+  ticket_price: number
+  tickets_total: number
+  tickets_sold: number
+}
+
+interface Venue {
+  venue_id: number
+  name: string
+  capacity: number
+}
+
+const EventManagement: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>()
-  const { events, loading } = useSelector((state: RootState) => state.events)
+  const { events = [], loading: eventsLoading, error: eventsError } = useSelector((state: RootState) => state.events)
+  const { venues = [], loading: venuesLoading, error: venuesError } = useSelector((state: RootState) => state.venues)
+
   const [showAddForm, setShowAddForm] = useState(false)
   const [showEditForm, setShowEditForm] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<any>(null)
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
-  // Removed 'past' filter status, only 'all' and 'upcoming' now
-  const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming'>('all')
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    venue_id: 1,
+    venue_id: '',
     category: '',
     date: '',
     time: '',
@@ -27,19 +51,36 @@ const EventManagement = () => {
     tickets_total: '',
   })
 
+  const categories = [
+    'Concert', 'Conference', 'Workshop', 'Sports', 'Theater',
+    'Festival', 'Exhibition', 'Networking', 'Comedy', 'Other'
+  ]
+
   useEffect(() => {
     dispatch(fetchEvents())
+    dispatch(fetchVenues())
   }, [dispatch])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      const maxSize = 100 * 1024 * 1024
+      if (file.size > maxSize) {
+        toast.error('File too large. Please select an image smaller than 100MB.')
+        e.target.value = ''
+        return
+      }
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file.')
+        e.target.value = ''
+        return
+      }
       setImageFile(file)
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
+      reader.onloadend = () => setImagePreview(reader.result as string)
       reader.readAsDataURL(file)
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+      toast.success(`Image selected: ${file.name} (${fileSizeMB}MB)`)
     }
   }
 
@@ -47,15 +88,15 @@ const EventManagement = () => {
     setFormData({
       title: '',
       description: '',
-      venue_id: 1,
+      venue_id: '',
       category: '',
       date: '',
       time: '',
       ticket_price: '',
       tickets_total: '',
     })
-    setImagePreview('')
     setImageFile(null)
+    setImagePreview('')
     setShowAddForm(false)
     setShowEditForm(false)
     setEditingEvent(null)
@@ -63,57 +104,68 @@ const EventManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    if (!formData.venue_id) {
+      toast.error('Please select a venue')
+      return
+    }
     try {
-      let imageUrl = ''
-
-      // Upload image if selected
+      let imageUrl = editingEvent?.image_url || ''
       if (imageFile) {
-        const uploadFormData = new FormData()
-        uploadFormData.append('file', imageFile)
-
+        const uploadData = new FormData()
+        uploadData.append('file', imageFile)
         const uploadResponse = await fetch(`${API_BASE_URL}/api/upload`, {
           method: 'POST',
-          body: uploadFormData,
+          body: uploadData,
         })
-
-        if (!uploadResponse.ok) throw new Error('Image upload failed')
-
-        const uploadResult = await uploadResponse.json()
-        imageUrl = uploadResult.imageUrl
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text()
+          let errorMessage = 'Image upload failed'
+          try {
+            const errorData = JSON.parse(errorText)
+            if (errorData.error) errorMessage = errorData.error
+          } catch {
+            errorMessage = `Upload failed: ${uploadResponse.status}`
+          }
+          throw new Error(errorMessage)
+        }
+        const result = await uploadResponse.json()
+        imageUrl = result.imageUrl || result.url || result.path || ''
       }
-
-      const eventData = {
-        ...formData,
+      const eventPayload = {
+        title: formData.title,
+        description: formData.description,
+        venue_id: parseInt(formData.venue_id),
+        category: formData.category,
+        date: formData.date,
+        time: formData.time,
+        image_url: imageUrl,
         ticket_price: parseFloat(formData.ticket_price),
         tickets_total: parseInt(formData.tickets_total),
-        image_url: imageUrl,
+        tickets_sold: editingEvent?.tickets_sold || 0,
       }
-
       if (editingEvent) {
-        await dispatch(updateEvent({ id: editingEvent.event_id, eventData })).unwrap()
-        setShowEditForm(false)
-        setEditingEvent(null)
+        await dispatch(updateEvent({ id: editingEvent.event_id, eventData: eventPayload })).unwrap()
+        toast.success('Event updated successfully')
       } else {
-        await dispatch(createEvent(eventData)).unwrap()
-        setShowAddForm(false)
+        await dispatch(createEvent(eventPayload)).unwrap()
+        toast.success('Event created successfully')
       }
-
       resetForm()
-    } catch (error) {
-      console.error('Error saving event:', error)
+    } catch (error: any) {
+      const errorMessage = typeof error === 'string' ? error : error?.message || 'Failed to save event'
+      toast.error(errorMessage)
     }
   }
 
-  const handleEdit = (event: any) => {
+  const handleEdit = (event: Event) => {
     setEditingEvent(event)
     setFormData({
       title: event.title,
       description: event.description || '',
-      venue_id: event.venue_id || 1,
+      venue_id: event.venue_id.toString(),
       category: event.category,
-      date: event.date?.slice(0, 10) || '',
-      time: event.time || '',
+      date: event.date,
+      time: event.time,
       ticket_price: event.ticket_price.toString(),
       tickets_total: event.tickets_total.toString(),
     })
@@ -121,92 +173,116 @@ const EventManagement = () => {
     setShowEditForm(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
+  const handleDelete = async (event: Event) => {
+    if (event.tickets_sold > 0) {
+      toast.error('Cannot delete event with sold tickets')
+      return
+    }
+    const result = await new Promise((resolve) => {
+      const modal = document.createElement('div')
+      modal.className = 'fixed inset-0 flex items-center justify-center'
+      modal.innerHTML = `
+        <div class="bg-white p-4 border rounded shadow">
+          <p>Are you sure you want to delete "<strong>${event.title}</strong>"?</p>
+          <div class="mt-4 flex justify-end gap-2">
+            <button id="cancel-btn" class="btn btn-outline">No</button>
+            <button id="delete-btn" class="btn btn-primary">Yes</button>
+          </div>
+        </div>
+      `
+      document.body.appendChild(modal)
+      const cancelBtn = modal.querySelector('#cancel-btn')
+      const deleteBtn = modal.querySelector('#delete-btn')
+      const cleanup = () => document.body.removeChild(modal)
+      cancelBtn?.addEventListener('click', () => { cleanup(); resolve(false) })
+      deleteBtn?.addEventListener('click', () => { cleanup(); resolve(true) })
+      modal.addEventListener('click', (e) => { if (e.target === modal) { cleanup(); resolve(false) } })
+    })
+    if (result) {
       try {
-        await dispatch(deleteEvent(id)).unwrap()
-      } catch {
-        // handle error if needed
+        await dispatch(deleteEvent(event.event_id)).unwrap()
+        toast.success('Event deleted successfully')
+      } catch (error: any) {
+        toast.error(error || 'Failed to delete event')
       }
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    )
+  const getVenueName = (venueId: number) => {
+    const venue = venues?.find(v => v.venue_id === venueId)
+    return venue?.name || 'Unknown Venue'
   }
 
-  // Ensure events is always an array
-  const eventsArray = Array.isArray(events) ? events : []
-
-  // Filter events by search and status (only 'all' and 'upcoming')
-  const filteredEvents = eventsArray.filter((event) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchLower) ||
-      event.category.toLowerCase().includes(searchLower)
-
-    const today = new Date()
-    const eventDate = new Date(event.date)
-
-    const matchesStatus =
-      filterStatus === 'all' || (filterStatus === 'upcoming' && eventDate >= today)
-
-    return matchesSearch && matchesStatus
+  const filteredEvents = (events || []).filter((event: Event | undefined): event is Event => {
+    return !!event && typeof event.title === 'string' && typeof event.category === 'string' && typeof event.venue_id === 'number'
+  }).filter((event: Event) => {
+    return (
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getVenueName(event.venue_id).toLowerCase().includes(searchTerm.toLowerCase())
+    )
   })
 
-  // Stats without Total Tickets
   const eventStats = {
-    total: eventsArray.length,
-    ticketsSold: eventsArray.reduce((sum, e) => sum + (e.tickets_sold || 0), 0),
+    total: events?.length || 0,
+    totalTicketsSold: (events || []).reduce((sum: number, e: Event | undefined) => sum + (e?.tickets_sold || 0), 0),
   }
 
   return (
-    <div className="w-full space-y-6">
-      {/* Header + Add Button */}
+    <div className="space-y-6">
+      {(eventsLoading || venuesLoading) && (
+        <div className="flex justify-center items-center py-8">
+          <span className="loading loading-spinner loading-lg"></span>
+          <span className="ml-2">Loading...</span>
+        </div>
+      )}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Event Management</h2>
-        <button onClick={() => setShowAddForm(true)} className="btn btn-primary">
+        <button
+          className="btn btn-primary"
+          onClick={() => setShowAddForm(true)}
+          disabled={!venues || venues.length === 0}
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Add New Event
         </button>
       </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {(eventsError || venuesError) && (
+        <div className="alert alert-error mb-4">
+          <span>⚠️ {eventsError || venuesError}</span>
+        </div>
+      )}
+      {(!venues || venues.length === 0) && (
+        <div className="alert alert-warning">
+          <span>⚠️ No venues available. Please add venues first before creating events.</span>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Total Events', value: eventStats.total, icon: Calendar, color: 'text-blue-600' },
-          { label: 'Tickets Sold', value: eventStats.ticketsSold.toLocaleString(), icon: Users, color: 'text-purple-600' },
+          {
+            label: 'Total Events',
+            value: eventStats.total,
+            icon: Calendar,
+            color: 'text-indigo-600'
+          },
+          {
+            label: 'Tickets Sold',
+            value: eventStats.totalTicketsSold.toLocaleString(),
+            icon: DollarSign,
+            color: 'text-rose-600'
+          },
         ].map(({ label, value, icon: Icon, color }) => (
-          <div
-            key={label}
-            className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center"
-          >
-            <div>
-              <p className="text-sm text-base-content/70">{label}</p>
-              <p className="text-xl font-bold">{value}</p>
+          <div key={label} className="bg-base-100 border border-base-300 rounded-xl shadow p-3 flex justify-between items-center min-h-[80px]">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-base-content/70 truncate">{label}</p>
+              <p className="text-lg font-bold truncate">{value}</p>
             </div>
-            <Icon className={`h-8 w-8 ${color}`} />
+            <Icon className={`h-6 w-6 ${color} flex-shrink-0 ml-2`} />
           </div>
         ))}
       </div>
-
-      {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="join">
-          {(['all', 'upcoming'] as const).map((status) => (
-            <button
-              key={status}
-              className={`btn join-item ${filterStatus === status ? 'btn-active' : ''}`}
-              onClick={() => setFilterStatus(status)}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
-        <div className="relative w-full sm:w-1/2">
+      <div className="flex justify-end items-center">
+        <div className="relative w-full sm:w-1/3">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
           <input
             type="text"
@@ -217,265 +293,101 @@ const EventManagement = () => {
           />
         </div>
       </div>
-
-      {/* Add/Edit Form */}
-      {(showAddForm || showEditForm) && (
-        <div className="card bg-base-100 shadow-lg mb-6 border border-base-300">
-          <div className="card-body">
-            <h3 className="card-title">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column - Form Fields */}
-                <div className="space-y-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Event Title</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      className="input input-bordered"
-                      required
-                    />
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Description</span>
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="textarea textarea-bordered"
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Date</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                        className="input input-bordered"
-                        required
-                      />
-                    </div>
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Time</span>
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.time}
-                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                        className="input input-bordered"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Category</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="input input-bordered"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Ticket Price</span>
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={formData.ticket_price}
-                        onChange={(e) => setFormData({ ...formData, ticket_price: e.target.value })}
-                        className="input input-bordered"
-                        required
-                      />
-                    </div>
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Total Tickets</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.tickets_total}
-                        onChange={(e) => setFormData({ ...formData, tickets_total: e.target.value })}
-                        className="input input-bordered"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Image Upload */}
-                <div className="space-y-4">
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Event Image</span>
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="file-input file-input-bordered w-full"
-                    />
-                  </div>
-                  {imagePreview ? (
-                    <div className="w-full">
-                      <label className="label">
-                        <span className="label-text">Preview</span>
-                      </label>
-                      <div className="w-full h-48 border-2 border-dashed border-base-300 rounded-lg overflow-hidden">
-                        <img
-                          src={imagePreview.startsWith('data:') ? imagePreview : `${API_BASE_URL}${imagePreview}`}
-                          alt="Event preview"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-48 border-2 border-dashed border-base-300 rounded-lg flex items-center justify-center text-base-content/50">
-                      <div className="text-center">
-                        <svg
-                          className="mx-auto h-12 w-12 text-base-content/30"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <p className="mt-2 text-sm">Upload event image</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="card-actions justify-end mt-6">
-                <button type="button" onClick={resetForm} className="btn btn-ghost">
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingEvent ? 'Update Event' : 'Add Event'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Events Table */}
       <div className="overflow-x-auto">
-        <table className="table table-zebra w-full bg-base-100 shadow-lg rounded-lg">
+        <table className="table table-zebra w-full bg-base-100 rounded-lg shadow">
           <thead>
             <tr>
-              <th className="bg-base-200 font-semibold">Image</th>
-              <th className="bg-base-200 font-semibold">ID</th>
-              <th className="bg-base-200 font-semibold">Title</th>
-              <th className="bg-base-200 font-semibold">Date</th>
-              <th className="bg-base-200 font-semibold">Time</th>
-              <th className="bg-base-200 font-semibold">Category</th>
-              <th className="bg-base-200 font-semibold">Ticket Price</th>
-              <th className="bg-base-200 font-semibold">Total Tickets</th>
-              <th className="bg-base-200 font-semibold">Sold</th>
-              <th className="bg-base-200 font-semibold">Available</th>
-              <th className="bg-base-200 font-semibold">Actions</th>
+              <th className="w-20">Image</th>
+              <th>Title</th>
+              <th>Venue</th>
+              <th>Category</th>
+              <th>Date & Time</th>
+              <th>Price</th>
+              <th className="w-32">Tickets</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredEvents.length === 0 ? (
+            {eventsLoading ? (
               <tr>
-                <td colSpan={11} className="text-center py-8 text-base-content/60">
-                  No events found
+                <td colSpan={8} className="text-center py-6">
+                  <span className="loading loading-spinner loading-md"></span> Loading events...
                 </td>
               </tr>
+            ) : filteredEvents.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center py-6">No events found</td>
+              </tr>
             ) : (
-              filteredEvents.map((event) => {
-                // Calculate available tickets in real-time
+              filteredEvents.map((event: Event) => {
                 const soldTickets = event.tickets_sold || 0
-                const totalTickets = event.tickets_total
-                const availableTickets = totalTickets - soldTickets
-                
+                const availableTickets = event.tickets_total - soldTickets
                 return (
                   <tr key={event.event_id}>
                     <td>
-                      <div className="avatar">
-                        <div className="w-16 h-12 rounded overflow-hidden">
-                          {event.image_url ? (
-                            <img
-                              src={
-                                event.image_url.startsWith('http')
-                                  ? event.image_url
-                                  : `${API_BASE_URL}${event.image_url}`
-                              }
-                              alt={event.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-base-300 flex items-center justify-center">
-                              <svg
-                                className="w-6 h-6 text-base-content/30"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
+                      <div className="w-20 h-14 rounded overflow-hidden">
+                        {event.image_url ? (
+                          <img
+                            src={event.image_url.startsWith('http') ? event.image_url : `${API_BASE_URL}${event.image_url}`}
+                            className="w-full h-full object-cover"
+                            alt={event.title}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-base-200 flex items-center justify-center text-sm text-base-content/50">
+                            No Image
+                          </div>
+                        )}
                       </div>
                     </td>
-                    <td>{event.event_id}</td>
-                    <td className="font-medium">{event.title}</td>
-                    <td>{new Date(event.date).toISOString().slice(0, 10)}</td>
-                    <td>{event.time}</td>
-                    <td>{event.category}</td>
-                    <td className="font-semibold">${event.ticket_price}</td>
-                    <td className="font-semibold text-blue-600">{totalTickets}</td>
-                    <td className="font-semibold text-purple-600">{soldTickets}</td>
-                    <td className={`font-semibold ${
-                      availableTickets > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {availableTickets}
+                    <td>
+                      <div>
+                        <div className="font-bold">{event.title || 'Untitled Event'}</div>
+                        {event.description && (
+                          <div className="text-sm text-base-content/70 truncate max-w-xs">
+                            {event.description}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-1">
+                        {getVenueName(event.venue_id)}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge badge-outline">{event.category || 'Uncategorized'}</span>
+                    </td>
+                    <td>
+                      <div className="text-sm">
+                        <div className="text-blue-600">{event.date ? new Date(event.date).toLocaleDateString() : 'No date'}</div>
+                        <div className="text-green-600">{event.time || 'No time'}</div>
+                      </div>
+                    </td>
+                    <td>${event.ticket_price ? parseFloat(event.ticket_price.toString()).toFixed(2) : '0.00'}</td>
+                    <td>
+                      <div className="text-sm">
+                        <div className="text-purple-600">Sold: {soldTickets}</div>
+                        <div className="text-teal-600">Available: {availableTickets}</div>
+                        <div className="text-orange-600">Total: {event.tickets_total}</div>
+                      </div>
                     </td>
                     <td>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEdit(event)}
-                          className="btn btn-sm btn-info min-h-8 h-8"
+                          className="btn btn-sm btn-ghost"
+                          title="Edit Event"
+                          aria-label="Edit Event"
                         >
-                          Edit
+                          <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(event.event_id)}
-                          className="btn btn-sm btn-error min-h-8 h-8"
+                          onClick={() => handleDelete(event)}
+                          className="btn btn-sm btn-ghost text-error"
+                          title="Delete Event"
+                          aria-label="Delete Event"
                         >
-                          Delete
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -486,6 +398,186 @@ const EventManagement = () => {
           </tbody>
         </table>
       </div>
+      {(showAddForm || showEditForm) && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="card bg-white shadow-lg border border-base-300 max-w-2xl w-full mx-4 p-4 overflow-auto" style={{ maxHeight: '90vh' }}>
+            <div className="card-body">
+              <h3 className="card-title">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
+              <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Event Title *</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="input input-bordered w-full"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        required
+                        aria-required="true"
+                      />
+                    </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Description</span>
+                      </label>
+                      <textarea
+                        className="textarea textarea-bordered w-full"
+                        rows={3}
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Venue *</span>
+                      </label>
+                      <select
+                        className="select select-bordered w-full"
+                        value={formData.venue_id}
+                        onChange={(e) => setFormData({ ...formData, venue_id: e.target.value })}
+                        required
+                        aria-required="true"
+                      >
+                        <option value="">Select a venue</option>
+                        {venues?.map((venue: Venue) => (
+                          <option key={venue.venue_id} value={venue.venue_id}>
+                            {venue.name} (Capacity: {venue.capacity?.toLocaleString()})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Category *</span>
+                      </label>
+                      <select
+                        className="select select-bordered w-full"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        required
+                        aria-required="true"
+                      >
+                        <option value="">Select a category</option>
+                        {categories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Date *</span>
+                        </label>
+                        <input
+                          type="date"
+                          className="input input-bordered w-full"
+                          value={formData.date}
+                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                          required
+                          aria-required="true"
+                        />
+                      </div>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Time *</span>
+                        </label>
+                        <input
+                          type="time"
+                          className="input input-bordered w-full"
+                          value={formData.time}
+                          onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                          required
+                          aria-required="true"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Ticket Price ($) *</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="input input-bordered w-full"
+                          value={formData.ticket_price}
+                          onChange={(e) => setFormData({ ...formData, ticket_price: e.target.value })}
+                          required
+                          aria-required="true"
+                        />
+                      </div>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Total Tickets *</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          className="input input-bordered w-full"
+                          value={formData.tickets_total}
+                          onChange={(e) => setFormData({ ...formData, tickets_total: e.target.value })}
+                          required
+                          aria-required="true"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Event Image (Optional)</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="file-input file-input-bordered w-full"
+                      />
+                      <div className="label">
+                        <span className="label-text-alt text-info">
+                          Max file size: 100MB. Supported formats: JPG, PNG, GIF, WebP
+                        </span>
+                      </div>
+                    </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Preview</span>
+                      </label>
+                      <div className="w-full h-64 border-2 border-dashed border-base-300 rounded-lg overflow-hidden">
+                        {imagePreview ? (
+                          <img
+                            src={imagePreview.startsWith('data:') ? imagePreview : `${API_BASE_URL}${imagePreview}`}
+                            className="w-full h-full object-cover"
+                            alt="Preview"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-base-content/50">
+                            <p>No image uploaded</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-actions justify-end mt-6">
+                  <button type="button" onClick={resetForm} className="btn btn-ghost">
+                    Cancel
+                  </button>
+                  <button type="submit" onClick={handleSubmit} className="btn btn-primary">
+                    {editingEvent ? 'Update Event' : 'Create Event'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

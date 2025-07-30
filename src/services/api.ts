@@ -91,7 +91,7 @@ export const mpesaAPI = {
     api.post('/api/mpesa/stk-push', data),
 };
 
-// const MPESA_BASE_URL = 'https://bf5de10c9999.ngrok-free.app';
+// const MPESA_BASE_URL = 'https://35dbad42b1d6.ngrok-free.app';
 
 // export const mpesaAPI = {
 //   initiateSTKPush: (data: { phoneNumber: string; amount: number; paymentId: number }) =>

@@ -6,7 +6,15 @@ import {
   deleteBooking,
   updateBooking,
 } from '../../../store/slices/bookingSlice'
-import { Search, Users, CheckCircle, Clock } from 'lucide-react'
+import {
+  Search,
+  Users,
+  CheckCircle,
+  Clock,
+  Pencil,
+  Trash2,
+} from 'lucide-react'
+import { toast } from 'sonner'
 
 const BookingManagement = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -20,16 +28,56 @@ const BookingManagement = () => {
     total_amount: '',
     booking_status: '',
   })
-
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     dispatch(fetchBookings())
   }, [dispatch])
 
-  const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this booking?')) {
-      dispatch(deleteBooking(id))
+  const showDeleteModal = async (bookingId: number) => {
+    const booking = bookings.find(b => b.booking_id === bookingId)
+    if (!booking) return
+
+    const result = await new Promise((resolve) => {
+      const modal = document.createElement('div')
+      modal.className = 'fixed inset-0 bg-black/30 z-50 flex items-center justify-center px-4'
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+          <h2 class="text-lg font-semibold mb-4">Delete Booking</h2>
+          <p>Are you sure you want to delete booking <strong>#${booking.booking_id}</strong> for User <strong>${booking.user_id}</strong>?</p>
+          <div class="flex justify-end gap-3 mt-6">
+            <button id="cancel-btn" class="btn btn-outline">Cancel</button>
+            <button id="confirm-btn" class="btn btn-error text-white">Delete</button>
+          </div>
+        </div>
+      `
+      document.body.appendChild(modal)
+
+      const cleanup = () => document.body.removeChild(modal)
+
+      modal.querySelector('#cancel-btn')?.addEventListener('click', () => {
+        cleanup()
+        resolve(false)
+      })
+      modal.querySelector('#confirm-btn')?.addEventListener('click', () => {
+        cleanup()
+        resolve(true)
+      })
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          cleanup()
+          resolve(false)
+        }
+      })
+    })
+
+    if (result) {
+      try {
+        await dispatch(deleteBooking(bookingId)).unwrap()
+        toast.success('Booking deleted successfully')
+      } catch (err) {
+        toast.error('Failed to delete booking')
+      }
     }
   }
 
@@ -75,16 +123,22 @@ const BookingManagement = () => {
     )
   })
 
+  // const stats = {
+  //   total: bookings.length,
+  //   confirmed: bookings.filter(b => b.booking_status === 'Confirmed').length,
+  //   pending: bookings.filter(b => b.booking_status === 'Pending').length,
+  // }
   const stats = {
-    total: bookings.length,
-    confirmed: bookings.filter(b => b.booking_status === 'Confirmed').length,
-    pending: bookings.filter(b => b.booking_status === 'Pending').length,
-  }
+  total: bookings.length,
+  confirmed: bookings.filter(b => b.booking_status.toLowerCase() === 'confirmed').length,
+  pending: bookings.filter(b => b.booking_status.toLowerCase() === 'pending').length,
+}
+
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <span className="loading loading-spinner loading-lg" data-test="booking-loading-spinner" />
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     )
   }
@@ -92,37 +146,38 @@ const BookingManagement = () => {
   return (
     <div className="w-full space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold" data-test="booking-management-title">Booking Management</h2>
+        <h2 className="text-2xl font-bold">Booking Management</h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center" data-test="booking-stats-total">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 bg-base-100 rounded-xl shadow border flex justify-between items-center">
           <div>
             <p className="text-sm text-base-content/70">Total Bookings</p>
             <p className="text-xl font-bold">{stats.total}</p>
           </div>
-          <Users className="h-8 w-8 text-blue-600" />
+          <Users className="text-blue-600 w-7 h-7" />
         </div>
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center" data-test="booking-stats-confirmed">
+        <div className="p-4 bg-base-100 rounded-xl shadow border flex justify-between items-center">
           <div>
             <p className="text-sm text-base-content/70">Confirmed</p>
             <p className="text-xl font-bold">{stats.confirmed}</p>
           </div>
-          <CheckCircle className="h-8 w-8 text-green-600" />
+          <CheckCircle className="text-green-600 w-7 h-7" />
         </div>
-        <div className="bg-base-100 border border-base-300 rounded-xl shadow p-4 flex justify-between items-center" data-test="booking-stats-pending">
+        <div className="p-4 bg-base-100 rounded-xl shadow border flex justify-between items-center">
           <div>
             <p className="text-sm text-base-content/70">Pending</p>
             <p className="text-xl font-bold">{stats.pending}</p>
           </div>
-          <Clock className="h-8 w-8 text-yellow-600" />
+          <Clock className="text-yellow-600 w-7 h-7" />
         </div>
       </div>
 
-      <div className="relative mb-4 max-w-sm">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 w-5 h-5" />
         <input
-          data-test="booking-search-input"
           type="text"
           placeholder="Search by User ID, Event ID, or Status"
           value={searchTerm}
@@ -131,43 +186,39 @@ const BookingManagement = () => {
         />
       </div>
 
-      {error && (
-        <div className="alert alert-error mb-4" data-test="booking-error-alert">
-          <span>{error}</span>
-        </div>
-      )}
+      {error && <div className="alert alert-error">{error}</div>}
 
       <div className="overflow-x-auto">
-        <table className="table table-zebra w-full bg-base-100 shadow-lg rounded-lg" data-test="booking-table">
+        <table className="table table-zebra w-full bg-base-100 rounded-lg shadow">
           <thead>
             <tr>
-              <th>Booking ID</th>
-              <th>User ID</th>
-              <th>Event ID</th>
-              <th>Quantity</th>
-              <th>Total Amount</th>
+              <th>ID</th>
+              <th>User</th>
+              <th>Event</th>
+              <th>Qty</th>
+              <th>Total</th>
               <th>Status</th>
-              <th>Created At</th>
+              <th>Created</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-8 text-base-content/60" data-test="booking-empty-state">
-                  No bookings found
+                <td colSpan={8} className="text-center text-base-content/60 py-4">
+                  No bookings found.
                 </td>
               </tr>
             ) : filteredBookings.map((booking) =>
               editID === booking.booking_id ? (
-                <tr key={booking.booking_id} data-test={`booking-edit-row-${booking.booking_id}`}>
+                <tr key={booking.booking_id}>
                   <td>{booking.booking_id}</td>
-                  <td><input name="user_id" value={formData.user_id} onChange={handleEditChange} data-test="edit-user-id" /></td>
-                  <td><input name="event_id" value={formData.event_id} onChange={handleEditChange} data-test="edit-event-id" /></td>
-                  <td><input name="quantity" type="number" value={formData.quantity} onChange={handleEditChange} data-test="edit-quantity" /></td>
-                  <td><input name="total_amount" type="number" step="0.01" value={formData.total_amount} onChange={handleEditChange} data-test="edit-total-amount" /></td>
+                  <td><input name="user_id" value={formData.user_id} onChange={handleEditChange} /></td>
+                  <td><input name="event_id" value={formData.event_id} onChange={handleEditChange} /></td>
+                  <td><input name="quantity" value={formData.quantity} onChange={handleEditChange} /></td>
+                  <td><input name="total_amount" value={formData.total_amount} onChange={handleEditChange} /></td>
                   <td>
-                    <select name="booking_status" value={formData.booking_status} onChange={handleEditChange} data-test="edit-booking-status">
+                    <select name="booking_status" value={formData.booking_status} onChange={handleEditChange}>
                       <option value="Pending">Pending</option>
                       <option value="Confirmed">Confirmed</option>
                       <option value="Cancelled">Cancelled</option>
@@ -175,12 +226,12 @@ const BookingManagement = () => {
                   </td>
                   <td>{formatDate(booking.created_at)}</td>
                   <td>
-                    <button className="btn btn-sm btn-success" onClick={handleUpdate} data-test="save-edit-button">Save</button>
-                    <button className="btn btn-sm" onClick={() => setEditID(null)} data-test="cancel-edit-button">Cancel</button>
+                    <button className="btn btn-xs btn-success mr-1" onClick={handleUpdate}>Save</button>
+                    <button className="btn btn-xs" onClick={() => setEditID(null)}>Cancel</button>
                   </td>
                 </tr>
               ) : (
-                <tr key={booking.booking_id} data-test={`booking-row-${booking.booking_id}`}>
+                <tr key={booking.booking_id}>
                   <td>{booking.booking_id}</td>
                   <td>{booking.user_id}</td>
                   <td>{booking.event_id}</td>
@@ -193,15 +244,19 @@ const BookingManagement = () => {
                         : booking.booking_status === 'Pending'
                         ? 'badge-warning'
                         : 'badge-error'
-                    }`} data-test={`booking-status-${booking.booking_status.toLowerCase()}`}>
+                    }`}>
                       {booking.booking_status}
                     </span>
                   </td>
                   <td>{formatDate(booking.created_at)}</td>
                   <td>
                     <div className="flex gap-2">
-                      <button className="btn btn-sm btn-info" onClick={() => handleEditClick(booking)} data-test="edit-booking-button">Edit</button>
-                      <button className="btn btn-sm btn-error" onClick={() => handleDelete(booking.booking_id)} data-test="delete-booking-button">Delete</button>
+                      <button className="btn btn-ghost btn-xs" onClick={() => handleEditClick(booking)}>
+                        <Pencil className="w-4 h-4 text-blue-600" />
+                      </button>
+                      <button className="btn btn-ghost btn-xs" onClick={() => showDeleteModal(booking.booking_id)}>
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </button>
                     </div>
                   </td>
                 </tr>

@@ -52,10 +52,10 @@ const AdminDashboard = () => {
     { id: 'users', label: 'Users', icon: Users, color: 'text-blue-500' },
     { id: 'events', label: 'Events', icon: Ticket, color: 'text-green-500' },
     { id: 'bookings', label: 'Bookings', icon: CalendarDays, color: 'text-purple-500' },
-    { id: 'profile', label: 'Profile', icon: User, color: 'text-orange-500' },
     { id: 'venues', label: 'Venues', icon: Building2, color: 'text-cyan-500' },
     { id: 'payments', label: 'Payments', icon: CreditCard, color: 'text-yellow-500' },
     { id: 'support', label: 'Support', icon: HelpCircle, color: 'text-red-500' },
+    { id: 'profile', label: 'Profile', icon: User, color: 'text-orange-500' },
   ]
 
   return (
