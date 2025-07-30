@@ -53,7 +53,7 @@ const EventManagement: React.FC = () => {
 
   const categories = [
     'Concert', 'Conference', 'Workshop', 'Sports', 'Theater',
-    'Festival', 'Exhibition', 'Networking', 'Comedy', 'Other'
+    'Festival', 'Auction','Exhibition', 'Networking', 'Comedy','Weddings','Crusade', 'Other'
   ]
 
   useEffect(() => {
