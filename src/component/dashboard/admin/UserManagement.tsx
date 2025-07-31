@@ -54,6 +54,7 @@ const UserManagement = () => {
       try {
         await dispatch(deleteUser(userToDelete)).unwrap()
         toast.success('User deleted successfully')
+           await dispatch(fetchUsers())
       } catch (error: any) {
         toast.error(error || 'Failed to delete user')
       }

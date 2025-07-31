@@ -55,20 +55,20 @@ const Login = () => {
   }, [dispatch])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center px-4 py-8" data-test="login-page">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-200 rounded-full opacity-20 blur-3xl"></div>
       </div>
 
       <div className="w-full max-w-md relative">
-        <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm border border-gray-100">
-          <div className="text-center mb-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm border border-gray-100" data-test="login-container">
+          <div className="text-center mb-8" data-test="login-header">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
               <FaTicketAlt className="text-emerald-600 text-2xl" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to access your Crystal Events account</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2" data-test="login-title">Welcome Back</h1>
+            <p className="text-gray-600" data-test="login-subtitle">Sign in to access your Crystal Events account</p>
           </div>
 
           {error && (
@@ -82,9 +82,9 @@ const Login = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" data-test="login-form">
-            <div className="form-control">
+            <div className="form-control" data-test="email-field">
               <label className="label">
-                <span className="label-text font-medium text-gray-700">Email Address</span>
+                <span className="label-text font-medium text-gray-700" data-test="email-label">Email Address</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -99,16 +99,16 @@ const Login = () => {
                 />
               </div>
               {errors.email && (
-                <span className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                <span className="text-sm text-red-600 mt-1 flex items-center gap-1" data-test="email-error">
                   <span className="w-1 h-1 bg-red-600 rounded-full"></span>
                   {errors.email.message}
                 </span>
               )}
             </div>
 
-            <div className="form-control">
+            <div className="form-control" data-test="password-field">
               <label className="label">
-                <span className="label-text font-medium text-gray-700">Password</span>
+                <span className="label-text font-medium text-gray-700" data-test="password-label">Password</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -131,16 +131,16 @@ const Login = () => {
                 </button>
               </div>
               {errors.password && (
-                <span className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                <span className="text-sm text-red-600 mt-1 flex items-center gap-1" data-test="password-error">
                   <span className="w-1 h-1 bg-red-600 rounded-full"></span>
                   {errors.password.message}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="checkbox checkbox-sm checkbox-primary" />
+            <div className="flex items-center justify-between" data-test="login-options">
+              <label className="flex items-center gap-2 cursor-pointer" data-test="remember-me">
+                <input type="checkbox" className="checkbox checkbox-sm checkbox-primary" data-test="remember-me-checkbox" />
                 <span className="text-sm text-gray-600">Remember me</span>
               </label>
               <a
@@ -161,7 +161,7 @@ const Login = () => {
               data-test="login-submit-button"
             >
               {loading ? (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2" data-test="loading-state">
                   <span className="loading loading-spinner loading-sm"></span>
                   Signing in...
                 </span>
@@ -174,7 +174,7 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="text-center mt-8 space-y-3">
+          <div className="text-center mt-8 space-y-3" data-test="login-footer">
             <p className="text-gray-600">
               New to Crystal Events?{' '}
               <a href="/register" className="text-green-600 hover:text-emerald-700 font-medium" data-test="register-link">

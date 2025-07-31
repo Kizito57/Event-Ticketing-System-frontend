@@ -1,50 +1,93 @@
-// /// <reference types="cypress" />
+/// <reference types="cypress" />
 
-// Cypress.Commands.add('getDataTest', (dataTestSelector) => {
-//     return cy.get(`[data-test="${dataTestSelector}"]`)
-// })
+// Custom command to select elements by data-test attribute
+Cypress.Commands.add('getDataTest', (dataTestSelector) => {
+  return cy.get(`[data-test="${dataTestSelector}"]`)
+})
 
+// Custom command to log in as an admin user
+Cypress.Commands.add(
+  'loginAsAdmin',
+  (email = 'deity047@gmail.com', password = '12345678') => {
+    cy.visit('/login')
+    cy.getDataTest('login-email-input').type(email)
+    cy.getDataTest('login-password-input').type(password)
+    cy.getDataTest('login-submit-button').click()
+        
+    // Verify dashboard loaded
+    cy.url().should('include', '/admin-dashboard').as('adminDashboardUrl')
+    cy.get('body').should('contain.text', 'Admin Panel') // or 'Welcome back'
+        
+    // Wait for the dashboard to fully load
+    cy.getDataTest('admin-dashboard').should('be.visible')
+  }
+)
 
-// //login Admin user
-// Cypress.Commands.add('loginAsAdmin', (email = 'deity047@gmail.com', password = '') => {
-//     cy.visit('/login')
-//     cy.getDataTest('login-email-input').type(email)
-//     cy.getDataTest('login-password-input').type(password)
-//     cy.getDataTest('login-submit-button').click()
-//     cy.url().should('include', '/admin/dashboard/todos').as('adminDashboardUrl').as('adminDashboardUrl')
-//     // Welcome to your Admin dashboard - contains
-//     cy.get('body').should('contain.text', 'Welcome to your Admin dashboard') //body is the root element of the page
+// Custom command to log in as a regular user
+Cypress.Commands.add(
+  'loginAsUser',
+  (email = 'dkwanjiru097@gmail.com', password = '12345678') => {
+    cy.visit('/login')
+    cy.getDataTest('login-email-input').type(email)
+    cy.getDataTest('login-password-input').type(password)
+    cy.getDataTest('login-submit-button').click()
+        
+    // Verify user dashboard loaded
+    cy.url().should('include', '/user-dashboard').as('userDashboardUrl')
+    cy.get('body').should('contain.text', 'Crystal Events') // or greeting message
+        
+    // Wait for the dashboard to fully load
+    cy.getDataTest('user-dashboard').should('be.visible')
+  }
+)
 
-// })
+// Custom command to navigate to a specific admin tab
+Cypress.Commands.add('navigateToAdminTab', (tabName) => {
+  cy.getDataTest(`sidebar-tab-${tabName}`).click()
+  cy.getDataTest('admin-main-content').should('be.visible')
+})
 
+// Custom command to navigate to a specific user tab
+Cypress.Commands.add('navigateToUserTab', (tabName) => {
+  cy.getDataTest(`user-tab-${tabName}`).click()
+  cy.wait(1000) // Allow for tab content to load
+})
 
+// TypeScript: extend Cypress chainable interface
+export {} // Ensures this file is treated as a module
 
-// /* eslint-disable @typescript-eslint/no-namespace */
-// export { } // means this file is a module, so we can augment the Cypress namespace
-// declare global { // adding new types to the global scope.
-//     namespace Cypress { //adding to the Cypress types
-//         interface Chainable { //means we are extending the Cypress namespace with our own custom commands
-//             getDataTest(value: string): Chainable<JQuery<HTMLElement>>;
-//             loginAsAdmin(email: string, password: string): Chainable<void>;
-//         }
-//     }
-// } 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command to select element by data-test attribute.
+       * @example cy.getDataTest('login-submit-button')
+       */
+      getDataTest(value: string): Chainable<JQuery<HTMLElement>>
+            
+      /**
+       * Custom command to login as admin.
+       * @example cy.loginAsAdmin()
+       */
+      loginAsAdmin(email?: string, password?: string): Chainable<void>
+      
+      /**
+       * Custom command to login as regular user.
+       * @example cy.loginAsUser()
+       */
+      loginAsUser(email?: string, password?: string): Chainable<void>
+            
+      /**
+       * Custom command to navigate to admin tab.
+       * @example cy.navigateToAdminTab('events')
+       */
+      navigateToAdminTab(tabName: string): Chainable<void>
+      
+      /**
+       * Custom command to navigate to user tab.
+       * @example cy.navigateToUserTab('events')
+       */
+      navigateToUserTab(tabName: string): Chainable<void>
+    }
+  }
+}

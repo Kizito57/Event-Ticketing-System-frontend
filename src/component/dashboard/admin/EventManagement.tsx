@@ -7,7 +7,6 @@ import { fetchEvents, createEvent, updateEvent, deleteEvent } from '../../../sto
 import { fetchVenues } from '../../../store/slices/venueSlice'
 import { API_BASE_URL } from '../../../services/api'
 
-// Define interfaces for type safety
 interface Event {
   event_id: number
   title: string
@@ -53,7 +52,7 @@ const EventManagement: React.FC = () => {
 
   const categories = [
     'Concert', 'Conference', 'Workshop', 'Sports', 'Theater',
-    'Festival', 'Auction','Exhibition', 'Networking', 'Comedy','Weddings','Crusade', 'Other'
+    'Festival', 'Auction', 'Exhibition', 'Networking', 'Comedy', 'Weddings', 'Crusade', 'Other'
   ]
 
   useEffect(() => {
@@ -146,9 +145,11 @@ const EventManagement: React.FC = () => {
       if (editingEvent) {
         await dispatch(updateEvent({ id: editingEvent.event_id, eventData: eventPayload })).unwrap()
         toast.success('Event updated successfully')
+        await dispatch(fetchEvents())
       } else {
         await dispatch(createEvent(eventPayload)).unwrap()
         toast.success('Event created successfully')
+        await dispatch(fetchEvents())
       }
       resetForm()
     } catch (error: any) {
@@ -202,6 +203,7 @@ const EventManagement: React.FC = () => {
       try {
         await dispatch(deleteEvent(event.event_id)).unwrap()
         toast.success('Event deleted successfully')
+        await dispatch(fetchEvents())
       } catch (error: any) {
         toast.error(error || 'Failed to delete event')
       }
@@ -229,35 +231,36 @@ const EventManagement: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-test="event-management-page">
       {(eventsLoading || venuesLoading) && (
-        <div className="flex justify-center items-center py-8">
-          <span className="loading loading-spinner loading-lg"></span>
-          <span className="ml-2">Loading...</span>
+        <div className="flex justify-center items-center py-8" data-test="loading-state">
+          <span className="loading loading-spinner loading-lg" data-test="loading-spinner"></span>
+          <span className="ml-2" data-test="loading-text">Loading...</span>
         </div>
       )}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Event Management</h2>
+      <div className="flex justify-between items-center" data-test="event-header">
+        <h2 className="text-2xl font-bold" data-test="event-title">Event Management</h2>
         <button
           className="btn btn-primary"
           onClick={() => setShowAddForm(true)}
           disabled={!venues || venues.length === 0}
+          data-test="add-event-button"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4 mr-2" data-test="plus-icon" />
           Add New Event
         </button>
       </div>
       {(eventsError || venuesError) && (
-        <div className="alert alert-error mb-4">
-          <span>⚠️ {eventsError || venuesError}</span>
+        <div className="alert alert-error mb-4" data-test="error-alert">
+          <span data-test="error-text">⚠️ {eventsError || venuesError}</span>
         </div>
       )}
       {(!venues || venues.length === 0) && (
-        <div className="alert alert-warning">
-          <span>⚠️ No venues available. Please add venues first before creating events.</span>
+        <div className="alert alert-warning" data-test="no-venues-alert">
+          <span data-test="no-venues-text">⚠️ No venues available. Please add venues first before creating events.</span>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4" data-test="event-stats">
         {[
           {
             label: 'Total Events',
@@ -272,122 +275,121 @@ const EventManagement: React.FC = () => {
             color: 'text-rose-600'
           },
         ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-base-100 border border-base-300 rounded-xl shadow p-3 flex justify-between items-center min-h-[80px]">
+          <div key={label} className="bg-base-100 border border-base-300 rounded-xl shadow p-3 flex justify-between items-center min-h-[80px]" data-test={`stat-${label.toLowerCase().replace(' ', '-')}`}>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-base-content/70 truncate">{label}</p>
-              <p className="text-lg font-bold truncate">{value}</p>
+              <p className="text-xs text-base-content/70 truncate" data-test="stat-label">{label}</p>
+              <p className="text-lg font-bold truncate" data-test="stat-value">{value}</p>
             </div>
-            <Icon className={`h-6 w-6 ${color} flex-shrink-0 ml-2`} />
+            <Icon className={`h-6 w-6 ${color} flex-shrink-0 ml-2`} data-test="stat-icon" />
           </div>
         ))}
       </div>
-      <div className="flex justify-end items-center">
+      <div className="flex justify-end items-center" data-test="search-container">
         <div className="relative w-full sm:w-1/3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-base-content/50 h-5 w-5" data-test="search-icon" />
           <input
             type="text"
             placeholder="Search events..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="input input-bordered pl-10 w-full"
+            data-test="search-input"
           />
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" data-test="events-table">
         <table className="table table-zebra w-full bg-base-100 rounded-lg shadow">
           <thead>
-            <tr>
-              <th className="w-20">Image</th>
-              <th>Title</th>
-              <th>Venue</th>
-              <th>Category</th>
-              <th>Date & Time</th>
-              <th>Price</th>
-              <th className="w-32">Tickets</th>
-              <th>Actions</th>
+            <tr data-test="table-header">
+              {['Image', 'Title', 'Venue', 'Category', 'Date & Time', 'Price', 'Tickets', 'Actions'].map(header => (
+                <th key={header} data-test={`table-header-${header.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}>{header}</th>
+              ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody data-test="table-body">
             {eventsLoading ? (
-              <tr>
+              <tr data-test="loading-row">
                 <td colSpan={8} className="text-center py-6">
-                  <span className="loading loading-spinner loading-md"></span> Loading events...
+                  <span className="loading loading-spinner loading-md" data-test="table-loading-spinner"></span> Loading events...
                 </td>
               </tr>
             ) : filteredEvents.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="text-center py-6">No events found</td>
+              <tr data-test="no-events-row">
+                <td colSpan={8} className="text-center py-6" data-test="no-events-text">No events found</td>
               </tr>
             ) : (
               filteredEvents.map((event: Event) => {
                 const soldTickets = event.tickets_sold || 0
                 const availableTickets = event.tickets_total - soldTickets
                 return (
-                  <tr key={event.event_id}>
-                    <td>
+                  <tr key={event.event_id} data-test="event-row" data-event-id={event.event_id}>
+                    <td data-test="event-image">
                       <div className="w-20 h-14 rounded overflow-hidden">
                         {event.image_url ? (
                           <img
                             src={event.image_url.startsWith('http') ? event.image_url : `${API_BASE_URL}${event.image_url}`}
                             className="w-full h-full object-cover"
                             alt={event.title}
+                            data-test="image-content"
                           />
                         ) : (
-                          <div className="w-full h-full bg-base-200 flex items-center justify-center text-sm text-base-content/50">
+                          <div className="w-full h-full bg-base-200 flex items-center justify-center text-sm text-base-content/50" data-test="no-image-content">
                             No Image
                           </div>
                         )}
                       </div>
                     </td>
-                    <td>
+                    <td data-test="event-title">
                       <div>
-                        <div className="font-bold">{event.title || 'Untitled Event'}</div>
+                        <div className="font-bold" data-test="title-text">{event.title || 'Untitled Event'}</div>
                         {event.description && (
-                          <div className="text-sm text-base-content/70 truncate max-w-xs">
+                          <div className="text-sm text-base-content/70 truncate max-w-xs" data-test="description-text">
                             {event.description}
                           </div>
                         )}
                       </div>
                     </td>
-                    <td>
-                      <div className="flex items-center gap-1">
+                    <td data-test="event-venue">
+                      <div className="flex items-center gap-1" data-test="venue-text">
                         {getVenueName(event.venue_id)}
                       </div>
                     </td>
-                    <td>
-                      <span className="badge badge-outline">{event.category || 'Uncategorized'}</span>
+                    <td data-test="event-category">
+                      <span className="badge badge-outline" data-test="category-text">{event.category || 'Uncategorized'}</span>
                     </td>
-                    <td>
+                    <td data-test="event-date-time">
                       <div className="text-sm">
-                        <div className="text-blue-600">{event.date ? new Date(event.date).toLocaleDateString() : 'No date'}</div>
-                        <div className="text-green-600">{event.time || 'No time'}</div>
+                        <div className="text-blue-600" data-test="date-text">{event.date ? new Date(event.date).toLocaleDateString() : 'No date'}</div>
+                        <div className="text-green-600" data-test="time-text">{event.time || 'No time'}</div>
                       </div>
                     </td>
-                    <td>${event.ticket_price ? parseFloat(event.ticket_price.toString()).toFixed(2) : '0.00'}</td>
-                    <td>
+                    <td data-test="event-price">${event.ticket_price ? parseFloat(event.ticket_price.toString()).toFixed(2) : '0.00'}</td>
+                    <td data-test="event-tickets">
                       <div className="text-sm">
-                        <div className="text-purple-600">Sold: {soldTickets}</div>
-                        <div className="text-teal-600">Available: {availableTickets}</div>
-                        <div className="text-orange-600">Total: {event.tickets_total}</div>
+                        <div className="text-purple-600" data-test="sold-text">Sold: {soldTickets}</div>
+                        <div className="text-teal-600" data-test="available-text">Available: {availableTickets}</div>
+                        <div className="text-orange-600" data-test="total-text">Total: {event.tickets_total}</div>
                       </div>
                     </td>
-                    <td>
+                    <td data-test="event-actions">
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEdit(event)}
                           className="btn btn-sm btn-ghost"
                           title="Edit Event"
                           aria-label="Edit Event"
+                          data-test="edit-button"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4" data-test="edit-icon" />
                         </button>
                         <button
                           onClick={() => handleDelete(event)}
                           className="btn btn-sm btn-ghost text-error"
                           title="Delete Event"
                           aria-label="Delete Event"
+                          data-test="delete-button"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" data-test="delete-icon" />
                         </button>
                       </div>
                     </td>
@@ -399,16 +401,16 @@ const EventManagement: React.FC = () => {
         </table>
       </div>
       {(showAddForm || showEditForm) && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="card bg-white shadow-lg border border-base-300 max-w-2xl w-full mx-4 p-4 overflow-auto" style={{ maxHeight: '90vh' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-50" data-test="event-form-modal">
+          <div className="card bg-white shadow-lg border border-base-300 max-w-2xl w-full mx-4 p-4 overflow-auto" style={{ maxHeight: '90vh' }} data-test="event-form-content">
             <div className="card-body">
-              <h3 className="card-title">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
-              <form onSubmit={handleSubmit}>
+              <h3 className="card-title" data-test="form-title">{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
+              <form onSubmit={handleSubmit} data-test="event-form">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div className="space-y-4">
-                    <div className="form-control">
+                    <div className="form-control" data-test="title-field">
                       <label className="label">
-                        <span className="label-text">Event Title *</span>
+                        <span className="label-text" data-test="title-label">Event Title *</span>
                       </label>
                       <input
                         type="text"
@@ -417,22 +419,24 @@ const EventManagement: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         required
                         aria-required="true"
+                        data-test="title-input"
                       />
                     </div>
-                    <div className="form-control">
+                    <div className="form-control" data-test="description-field">
                       <label className="label">
-                        <span className="label-text">Description</span>
+                        <span className="label-text" data-test="description-label">Description</span>
                       </label>
                       <textarea
                         className="textarea textarea-bordered w-full"
                         rows={3}
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        data-test="description-input"
                       />
                     </div>
-                    <div className="form-control">
+                    <div className="form-control" data-test="venue-field">
                       <label className="label">
-                        <span className="label-text">Venue *</span>
+                        <span className="label-text" data-test="venue-label">Venue *</span>
                       </label>
                       <select
                         className="select select-bordered w-full"
@@ -440,18 +444,19 @@ const EventManagement: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, venue_id: e.target.value })}
                         required
                         aria-required="true"
+                        data-test="venue-select"
                       >
-                        <option value="">Select a venue</option>
+                        <option value="" data-test="venue-option-empty">Select a venue</option>
                         {venues?.map((venue: Venue) => (
-                          <option key={venue.venue_id} value={venue.venue_id}>
+                          <option key={venue.venue_id} value={venue.venue_id} data-test={`venue-option-${venue.venue_id}`}>
                             {venue.name} (Capacity: {venue.capacity?.toLocaleString()})
                           </option>
                         ))}
                       </select>
                     </div>
-                    <div className="form-control">
+                    <div className="form-control" data-test="category-field">
                       <label className="label">
-                        <span className="label-text">Category *</span>
+                        <span className="label-text" data-test="category-label">Category *</span>
                       </label>
                       <select
                         className="select select-bordered w-full"
@@ -459,19 +464,20 @@ const EventManagement: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         required
                         aria-required="true"
+                        data-test="category-select"
                       >
-                        <option value="">Select a category</option>
+                        <option value="" data-test="category-option-empty">Select a category</option>
                         {categories.map((category) => (
-                          <option key={category} value={category}>
+                          <option key={category} value={category} data-test={`category-option-${category.toLowerCase()}`}>
                             {category}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="form-control">
+                      <div className="form-control" data-test="date-field">
                         <label className="label">
-                          <span className="label-text">Date *</span>
+                          <span className="label-text" data-test="date-label">Date *</span>
                         </label>
                         <input
                           type="date"
@@ -480,11 +486,12 @@ const EventManagement: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                           required
                           aria-required="true"
+                          data-test="date-input"
                         />
                       </div>
-                      <div className="form-control">
+                      <div className="form-control" data-test="time-field">
                         <label className="label">
-                          <span className="label-text">Time *</span>
+                          <span className="label-text" data-test="time-label">Time *</span>
                         </label>
                         <input
                           type="time"
@@ -493,13 +500,14 @@ const EventManagement: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                           required
                           aria-required="true"
+                          data-test="time-input"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="form-control">
+                      <div className="form-control" data-test="ticket-price-field">
                         <label className="label">
-                          <span className="label-text">Ticket Price ($) *</span>
+                          <span className="label-text" data-test="ticket-price-label">Ticket Price ($) *</span>
                         </label>
                         <input
                           type="number"
@@ -510,11 +518,12 @@ const EventManagement: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, ticket_price: e.target.value })}
                           required
                           aria-required="true"
+                          data-test="ticket-price-input"
                         />
                       </div>
-                      <div className="form-control">
+                      <div className="form-control" data-test="tickets-total-field">
                         <label className="label">
-                          <span className="label-text">Total Tickets *</span>
+                          <span className="label-text" data-test="tickets-total-label">Total Tickets *</span>
                         </label>
                         <input
                           type="number"
@@ -524,30 +533,32 @@ const EventManagement: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, tickets_total: e.target.value })}
                           required
                           aria-required="true"
+                          data-test="tickets-total-input"
                         />
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <div className="form-control">
+                    <div className="form-control" data-test="image-field">
                       <label className="label">
-                        <span className="label-text">Event Image (Optional)</span>
+                        <span className="label-text" data-test="image-label">Event Image (Optional)</span>
                       </label>
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
                         className="file-input file-input-bordered w-full"
+                        data-test="image-input"
                       />
                       <div className="label">
-                        <span className="label-text-alt text-info">
+                        <span className="label-text-alt text-info" data-test="image-info">
                           Max file size: 100MB. Supported formats: JPG, PNG, GIF, WebP
                         </span>
                       </div>
                     </div>
-                    <div className="form-control">
+                    <div className="form-control" data-test="image-preview">
                       <label className="label">
-                        <span className="label-text">Preview</span>
+                        <span className="label-text" data-test="preview-label">Preview</span>
                       </label>
                       <div className="w-full h-64 border-2 border-dashed border-base-300 rounded-lg overflow-hidden">
                         {imagePreview ? (
@@ -555,9 +566,10 @@ const EventManagement: React.FC = () => {
                             src={imagePreview.startsWith('data:') ? imagePreview : `${API_BASE_URL}${imagePreview}`}
                             className="w-full h-full object-cover"
                             alt="Preview"
+                            data-test="preview-image"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-base-content/50">
+                          <div className="w-full h-full flex items-center justify-center text-base-content/50" data-test="no-preview-text">
                             <p>No image uploaded</p>
                           </div>
                         )}
@@ -565,11 +577,11 @@ const EventManagement: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="card-actions justify-end mt-6">
-                  <button type="button" onClick={resetForm} className="btn btn-ghost">
+                <div className="card-actions justify-end mt-6" data-test="form-actions">
+                  <button type="button" onClick={resetForm} className="btn btn-ghost" data-test="cancel-button">
                     Cancel
                   </button>
-                  <button type="submit" onClick={handleSubmit} className="btn btn-primary">
+                  <button type="submit" onClick={handleSubmit} className="btn btn-primary" data-test="submit-button">
                     {editingEvent ? 'Update Event' : 'Create Event'}
                   </button>
                 </div>

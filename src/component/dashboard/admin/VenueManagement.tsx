@@ -103,9 +103,11 @@ const VenueManagement: React.FC = () => {
       if (editingVenue) {
         await dispatch(updateVenue({ id: editingVenue.venue_id, venueData: venuePayload })).unwrap();
         toast.success('Venue updated successfully');
+         await dispatch(fetchVenues())
       } else {
         await dispatch(createVenue(venuePayload)).unwrap();
         toast.success('Venue created successfully');
+         await dispatch(fetchVenues())
       }
 
       resetForm();
@@ -138,6 +140,7 @@ const VenueManagement: React.FC = () => {
     try {
       await dispatch(deleteVenue(venue.venue_id)).unwrap();
       toast.success('Venue deleted');
+         await dispatch(fetchVenues())
     } catch {
       toast.error('Failed to delete venue');
     } finally {

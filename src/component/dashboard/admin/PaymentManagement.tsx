@@ -58,6 +58,7 @@ const PaymentManagement: React.FC = () => {
         paymentData: { payment_status: newStatus } 
       })).unwrap()
       toast.success(`Payment status updated to ${newStatus}`)
+       await dispatch(fetchPayments())
     } catch (error) {
       toast.error('Failed to update payment status')
     }

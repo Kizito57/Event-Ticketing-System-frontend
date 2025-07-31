@@ -43,12 +43,12 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 flex items-center justify-center p-4" data-test="register-page">
+      <div className="w-full max-w-md" data-test="register-container">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-green-600 rounded-2xl mb-4 shadow-lg">
+        <div className="text-center mb-8" data-test="register-header">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-500 to-green-600 rounded-2xl mb-4 shadow-lg" data-test="register-icon">
             <svg
               className="w-8 h-8 text-white"
               fill="none"
@@ -63,12 +63,12 @@ const Register = () => {
               />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join us and start your journey</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2" data-test="register-title">Create Account</h1>
+          <p className="text-gray-600" data-test="register-subtitle">Join us and start your journey</p>
         </div>
 
         {/* Card */}
-        <div className="card bg-white/80 backdrop-blur-sm shadow-xl border border-white/20">
+        <div className="card bg-white/80 backdrop-blur-sm shadow-xl border border-white/20" data-test="register-card">
           <div className="card-body p-8" data-test="register-form">
 
             {error && (
@@ -89,13 +89,13 @@ const Register = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" data-test="register-form-element">
 
               {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="form-control">
+              <div className="grid grid-cols-2 gap-4" data-test="name-fields">
+                <div className="form-control" data-test="first-name-field">
                   <label className="label">
-                    <span className="label-text text-gray-700 font-medium">First Name</span>
+                    <span className="label-text text-gray-700 font-medium" data-test="first-name-label">First Name</span>
                   </label>
                   <input
                     type="text"
@@ -109,9 +109,9 @@ const Register = () => {
                   />
                 </div>
 
-                <div className="form-control">
+                <div className="form-control" data-test="last-name-field">
                   <label className="label">
-                    <span className="label-text text-gray-700 font-medium">Last Name</span>
+                    <span className="label-text text-gray-700 font-medium" data-test="last-name-label">Last Name</span>
                   </label>
                   <input
                     type="text"
@@ -127,9 +127,9 @@ const Register = () => {
               </div>
 
               {/* Email Field */}
-              <div className="form-control">
+              <div className="form-control" data-test="email-field">
                 <label className="label">
-                  <span className="label-text text-gray-700 font-medium">Email Address</span>
+                  <span className="label-text text-gray-700 font-medium" data-test="email-label">Email Address</span>
                 </label>
                 <input
                   type="email"
@@ -144,9 +144,9 @@ const Register = () => {
               </div>
 
               {/* Password Field */}
-              <div className="form-control">
+              <div className="form-control" data-test="password-field">
                 <label className="label">
-                  <span className="label-text text-gray-700 font-medium">Password</span>
+                  <span className="label-text text-gray-700 font-medium" data-test="password-label">Password</span>
                 </label>
                 <input
                   type="password"
@@ -161,9 +161,9 @@ const Register = () => {
               </div>
 
               {/* Confirm Password Field */}
-              <div className="form-control">
+              <div className="form-control" data-test="confirm-password-field">
                 <label className="label">
-                  <span className="label-text text-gray-700 font-medium">Confirm Password</span>
+                  <span className="label-text text-gray-700 font-medium" data-test="confirm-password-label">Confirm Password</span>
                 </label>
                 <input
                   type="password"
@@ -187,7 +187,7 @@ const Register = () => {
                 data-test="register-submit-button"
               >
                 {loading ? (
-                  <span className="loading loading-spinner loading-sm"></span>
+                  <span className="loading loading-spinner loading-sm" data-test="register-loading-state"></span>
                 ) : (
                   <>
                     <svg
@@ -210,10 +210,10 @@ const Register = () => {
             </form>
 
             {/* Divider */}
-            <div className="divider text-gray-400 my-6">Already have an account?</div>
+            <div className="divider text-gray-400 my-6" data-test="register-divider">Already have an account?</div>
 
             {/* Login Link */}
-            <div className="text-center">
+            <div className="text-center" data-test="login-link-section">
               <Link
                 to="/login"
                 className="btn btn-ghost text-green-600 hover:text-yellow-700 hover:bg-emerald-50 transition-colors duration-200"
